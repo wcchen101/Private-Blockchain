@@ -4,6 +4,10 @@
 
 const SHA256 = require('crypto-js/sha256');
 
+const levelSandbox = require('./levelSandbox')
+const level = require('level');
+const chainDB = './chaindata';
+const db = level(chainDB);
 
 /* ===== Block Class ==============================
 |  Class with a constructor for block 			   |
@@ -16,7 +20,7 @@ class Block{
      this.body = data,
      this.time = 0,
      this.previousBlockHash = ""
-    }
+  }
 }
 
 /* ===== Blockchain Class ==========================
@@ -43,56 +47,57 @@ class Blockchain{
     newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
     // Adding block object to chain
   	this.chain.push(newBlock);
+    levelSandbox.addLevelDBData(this.getBlockHeight(), JSON.stringify(newBlock))
   }
 
   // Get block height
-    getBlockHeight(){
-      return this.chain.length-1;
-    }
+  getBlockHeight(){
+    return this.chain.length-1;
+  }
 
-    // get block
-    getBlock(blockHeight){
-      // return object as a single string
-      return JSON.parse(JSON.stringify(this.chain[blockHeight]));
-    }
+  // get block
+  getBlock(blockHeight){
+    // return object as a single string
+    return JSON.parse(JSON.stringify(this.chain[blockHeight]));
+  }
 
-    // validate block
-    validateBlock(blockHeight){
-      // get block object
-      let block = this.getBlock(blockHeight);
-      // get block hash
-      let blockHash = block.hash;
-      // remove block hash to test block integrity
-      block.hash = '';
-      // generate block hash
-      let validBlockHash = SHA256(JSON.stringify(block)).toString();
-      // Compare
-      if (blockHash===validBlockHash) {
-          return true;
-        } else {
-          console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
-          return false;
-        }
-    }
-
-   // Validate blockchain
-    validateChain(){
-      let errorLog = [];
-      for (var i = 0; i < this.chain.length-1; i++) {
-        // validate block
-        if (!this.validateBlock(i))errorLog.push(i);
-        // compare blocks hash link
-        let blockHash = this.chain[i].hash;
-        let previousHash = this.chain[i+1].previousBlockHash;
-        if (blockHash!==previousHash) {
-          errorLog.push(i);
-        }
-      }
-      if (errorLog.length>0) {
-        console.log('Block errors = ' + errorLog.length);
-        console.log('Blocks: '+errorLog);
+  // validate block
+  validateBlock(blockHeight){
+    // get block object
+    let block = this.getBlock(blockHeight);
+    // get block hash
+    let blockHash = block.hash;
+    // remove block hash to test block integrity
+    block.hash = '';
+    // generate block hash
+    let validBlockHash = SHA256(JSON.stringify(block)).toString();
+    // Compare
+    if (blockHash===validBlockHash) {
+        return true;
       } else {
-        console.log('No errors detected');
+        console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
+        return false;
+      }
+  }
+
+ // Validate blockchain
+  validateChain(){
+    let errorLog = [];
+    for (var i = 0; i < this.chain.length-1; i++) {
+      // validate block
+      if (!this.validateBlock(i))errorLog.push(i);
+      // compare blocks hash link
+      let blockHash = this.chain[i].hash;
+      let previousHash = this.chain[i+1].previousBlockHash;
+      if (blockHash!==previousHash) {
+        errorLog.push(i);
       }
     }
+    if (errorLog.length>0) {
+      console.log('Block errors = ' + errorLog.length);
+      console.log('Blocks: '+errorLog);
+    } else {
+      console.log('No errors detected');
+    }
+  }
 }

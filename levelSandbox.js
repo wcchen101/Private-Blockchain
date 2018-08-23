@@ -7,14 +7,14 @@ const chainDB = './chaindata';
 const db = level(chainDB);
 
 // Add data to levelDB with key/value pair
-function addLevelDBData(key,value){
+exports.addLevelDBData = function(key,value){
   db.put(key, value, function(err) {
     if (err) return console.log('Block ' + key + ' submission failed', err);
   })
 }
 
 // Get data from levelDB with key
-function getLevelDBData(key){
+exports.getLevelDBData = function(key) {
   db.get(key, function(err, value) {
     if (err) return console.log('Not found!', err);
     console.log('Value = ' + value);
@@ -22,7 +22,7 @@ function getLevelDBData(key){
 }
 
 // Add data to levelDB with value
-function addDataToLevelDB(value) {
+exports.addDataToLevelDB = function(value) {
     let i = 0;
     db.createReadStream().on('data', function(data) {
           i++;
@@ -33,6 +33,7 @@ function addDataToLevelDB(value) {
           addLevelDBData(i, value);
         });
 }
+
 
 /* ===== Testing ==============================================================|
 |  - Self-invoking function to add blocks to chain                             |
@@ -46,9 +47,9 @@ function addDataToLevelDB(value) {
 |  ===========================================================================*/
 
 
-(function theLoop (i) {
-  setTimeout(function () {
-    addDataToLevelDB('Testing data');
-    if (--i) theLoop(i);
-  }, 100);
-})(10);
+// (function theLoop (i) {
+//   setTimeout(function () {
+//     addDataToLevelDB('Testing data');
+//     if (--i) theLoop(i);
+//   }, 100);
+// })(10);
