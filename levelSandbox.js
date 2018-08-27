@@ -7,26 +7,35 @@ const chainDB = './chaindata';
 const db = level(chainDB);
 
 // Add data to levelDB with key/value pair
-function addLevelDBData(key, value){
-  db.put(key, value, function(err) {
-    if (err) {
-      // callback('no key or value')
-      return console.log('Block ' + key + ' submission failed', err);
-    }
-    // callback(err);
+let addLevelDBData = function(key, value) {
+  return new Promise(function(resolve, reject) {
+    db.put(key, value, function(err) {
+      if (err) {
+        // callback('no key or value')
+        reject(err)
+        // return console.log('Block ' + key + ' submission failed', err);
+      }
+      resolve('Block inserted into db')
+      // callback(err);
+    })
   })
-}
+};
 
 
 // Get data from levelDB with key
-function getLevelDBData(key, callback) {
-  db.get(key, function(err, value) {
+let getLevelDBData = function(key) {
+  return new Promise(function(resolve, reject) {
+    db.get(key, function(err, value) {
     if (err) {
-      return console.log('Not found!', err);
+      reject(err)
+      console.log('Not found!', err);
+      // return console.log('Not found!', err);
     }
-    callback(JSON.parse(value))
+    // callback(JSON.parse(value))
+    resolve(JSON.parse(value))
     // return key
     console.log('Value = ' + value);
+    })
   })
 }
 
@@ -44,25 +53,56 @@ function addDataToLevelDB (value) {
 }
 
 // Add data to levelDB with value
-function getAllLevelDBData (callback) {
+let getAllLevelDBData = function() {
+  return new Promise(function(resolve, reject) {
     let i = 0;
     db.createReadStream().on('data', function(data) {
           i++;
         }).on('error', function(err) {
-            return console.log('Unable to read data stream!', err)
+            reject(err)
+            // return console.log('Unable to read data stream!', err)
         }).on('close', function() {
           // console.log('Block #' + i);
           // addLevelDBData(i, value);
         }).on('end', function() {
+          --i;
           console.log('db height', i)
-          callback(i)  
+          // callback(i)
+          resolve(i)
     });
+  });
+}
+
+// Add data to levelDB with value
+let addDataToBlockchain = function() {
+  return new Promise(function(resolve, reject) {
+    let i = 0;
+    let originalChain = [];
+    db.createReadStream().on('data', function(data) {
+        }).on('error', function(err) {
+            reject(err)
+            // return console.log('Unable to read data stream!', err)
+        }).on('close', function() {
+          // console.log('Block #' + i);
+          getLevelDBData(i).then((block) => {
+            originalChain.push(block)
+          })
+          i++;
+          // i++;
+          // addLevelDBData(i, value);
+        }).on('end', function() {
+          // console.log('db height')
+          resolve(originalChain)
+          // callback(originalChain)
+    });
+  });
 }
 
 exports.addLevelDBData = addLevelDBData;
 exports.getLevelDBData = getLevelDBData;
 exports.addDataToLevelDB = addDataToLevelDB;
 exports.getAllLevelDBData = getAllLevelDBData;
+exports.addDataToBlockchain = addDataToBlockchain;
 /* ===== Testing ==============================================================|
 |  - Self-invoking function to add blocks to chain                             |
 |  - Learn more:                                                               |
