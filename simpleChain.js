@@ -160,12 +160,14 @@ class Blockchain{
  // Validate blockchain
   validateChain(){
     let errorLog = [];
-    for (var i = 0; i < this.chain.length-1; i++) {
+    for (let i = 0; i < this.chain.length-1; i++) {
         this.validateBlock(i).then((isBlockValidation) => {
         // validate block
 				console.log(isBlockValidation)
         if (!isBlockValidation)errorLog.push(i);
         // compare blocks hash link
+				console.log('hash', this.chain[i].hash)
+				console.log('previsous hash', this.chain[i+1].previousBlockHash)
         let blockHash = this.chain[i].hash;
         let previousHash = this.chain[i+1].previousBlockHash;
         if (blockHash!==previousHash) {
