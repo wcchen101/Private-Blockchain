@@ -31,9 +31,11 @@ class Blockchain{
   constructor(){
 		this.chain = [];
 		let genesisBlock = new Block("First block in the chain - Genesis block")
-		levelSandbox.addLevelDBData(0, JSON.stringify(genesisBlock)).then((data) => console.log(data))
+		// this.chain.push(genesisBlock)
+		this.addBlock(genesisBlock)
+		// levelSandbox.addLevelDBData(0, JSON.stringify(genesisBlock)).then((data) => console.log(data))
 		levelSandbox.addDataToBlockchain().then((originalChain) => {
-			this.chain = originalChain
+			this.chain = this.chain.concat(originalChain)
 		}).then(console.log(this.chain))
   }
 
@@ -95,24 +97,38 @@ class Blockchain{
   }
 
   // validate block
-  validateBlock(blockHeight, callback){
+  validateBlock(blockHeight){
     // get block object
-    this.getBlock(blockHeight, function(block) {
-      // get block hash
+		levelSandbox.getLevelDBData(blockHeight).then((block) => {
+			// get block hash
       let blockHash = block.hash;
       // remove block hash to test block integrity
       block.hash = '';
       // generate block hash
       let validBlockHash = SHA256(JSON.stringify(block)).toString();
       // Compare
-      if (callback != undefined && blockHash===validBlockHash) {
-        callback(true);
-      } else if (callback != undefined && blockHash !== validBlockHash) {
-        console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
-        callback(false);
+      if (blockHash===validBlockHash) {
+        return true
       }
-      return (blockHash===validBlockHash) ? true : false
-    });
+      console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
+      return false
+		})
+    // this.getBlock(blockHeight, function(block) {
+    //   // get block hash
+    //   let blockHash = block.hash;
+    //   // remove block hash to test block integrity
+    //   block.hash = '';
+    //   // generate block hash
+    //   let validBlockHash = SHA256(JSON.stringify(block)).toString();
+    //   // Compare
+    //   if (callback != undefined && blockHash===validBlockHash) {
+    //     callback(true);
+    //   } else if (callback != undefined && blockHash !== validBlockHash) {
+    //     console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
+    //     callback(false);
+    //   }
+    //   return (blockHash===validBlockHash) ? true : false
+    // });
 
   }
 

@@ -79,22 +79,23 @@ let addDataToBlockchain = function() {
     let i = 0;
     let originalChain = [];
     db.createReadStream().on('data', function(data) {
+        getLevelDBData(i).then((block) => {
+          console.log('read stream', i, block)
+          originalChain.push(block)
+        })
+        i++;
         }).on('error', function(err) {
             reject(err)
             // return console.log('Unable to read data stream!', err)
         }).on('close', function() {
           // console.log('Block #' + i);
-          getLevelDBData(i).then((block) => {
-            originalChain.push(block)
-          })
-          i++;
           // i++;
           // addLevelDBData(i, value);
         }).on('end', function() {
-          // console.log('db height')
-          resolve(originalChain)
           // callback(originalChain)
     });
+    console.log('originalChain', originalChain)
+    resolve(originalChain)
   });
 }
 
