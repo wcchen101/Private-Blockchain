@@ -57,18 +57,18 @@ let getAllLevelDBData = function() {
   return new Promise(function(resolve, reject) {
     let i = 0;
     db.createReadStream().on('data', function(data) {
-          i++;
+        i++;
         }).on('error', function(err) {
             reject(err)
             // return console.log('Unable to read data stream!', err)
         }).on('close', function() {
           // console.log('Block #' + i);
           // addLevelDBData(i, value);
-        }).on('end', function() {
-          --i;
           console.log('db height', i)
           // callback(i)
           resolve(i)
+        }).on('end', function() {
+
     });
   });
 }
@@ -89,13 +89,11 @@ let addDataToBlockchain = function() {
             // return console.log('Unable to read data stream!', err)
         }).on('close', function() {
           // console.log('Block #' + i);
-          // i++;
+
+          console.log('originalChain', originalChain)
+          resolve(originalChain)
           // addLevelDBData(i, value);
-        }).on('end', function() {
-          // callback(originalChain)
-    });
-    console.log('originalChain', originalChain)
-    resolve(originalChain)
+      });
   });
 }
 

@@ -30,13 +30,24 @@ class Block{
 class Blockchain{
   constructor(){
 		this.chain = [];
-		let genesisBlock = new Block("First block in the chain - Genesis block")
-		// this.chain.push(genesisBlock)
-		this.addBlock(genesisBlock)
+		levelSandbox.getAllLevelDBData().then((height) => {
+			if (height == 0) {
+				let genesisBlock = new Block("First block in the chain - Genesis block")
+				// this.chain.push(genesisBlock)
+				this.addBlock(genesisBlock)
+			} else {
+				levelSandbox.addDataToBlockchain().then((originalChain) => {
+					console.log('debug ',originalChain)
+					this.chain = this.chain.concat(originalChain)
+				}).then(console.log(this.chain))
+			}
+		});
+
+		// let genesisBlock = new Block("First block in the chain - Genesis block")
+		// // this.chain.push(genesisBlock)
+		// this.addBlock(genesisBlock)
 		// levelSandbox.addLevelDBData(0, JSON.stringify(genesisBlock)).then((data) => console.log(data))
-		levelSandbox.addDataToBlockchain().then((originalChain) => {
-			this.chain = this.chain.concat(originalChain)
-		}).then(console.log(this.chain))
+
   }
 
   // Add new block
@@ -64,7 +75,7 @@ class Blockchain{
 
   // Get block height
 	getBlockHeight(){
-    let chainHeights;
+
     // levelSandbox.getAllLevelDBData(function(i) {
     //   chainHeights = i
     //   if (callback != undefined) {
@@ -73,11 +84,14 @@ class Blockchain{
     //     return chainHeights
     //   }
     // })
-		levelSandbox.getAllLevelDBData().then((height) => (
-			chainHeights = height - 1
-		)).then((chainHeights) => chainHeights)
-
+    return new Promise((resolve) => {
+			levelSandbox.getAllLevelDBData().then((height) => {
+				console.log('height', height)
+				resolve(height)
+			});
+		});
     // return this.chain.length-1;
+		// return chainHeights
   }
 
   // get block
@@ -99,20 +113,31 @@ class Blockchain{
   // validate block
   validateBlock(blockHeight){
     // get block object
-		levelSandbox.getLevelDBData(blockHeight).then((block) => {
-			// get block hash
-      let blockHash = block.hash;
-      // remove block hash to test block integrity
-      block.hash = '';
-      // generate block hash
-      let validBlockHash = SHA256(JSON.stringify(block)).toString();
-      // Compare
-      if (blockHash===validBlockHash) {
-        return true
-      }
-      console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
-      return false
-		})
+		let res;
+		return new Promise((resolve, reject) => {
+			levelSandbox.getLevelDBData(blockHeight).then((block) => {
+				try {
+					// get block hash
+					let blockHash = block.hash;
+					// remove block hash to test block integrity
+					block.hash = '';
+					// generate block hash
+					let validBlockHash = SHA256(JSON.stringify(block)).toString();
+					// Compare
+					if (blockHash===validBlockHash) {
+						console.log('passed validation! ')
+						resolve(true)
+					} else {
+						console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
+						resoleve(false)
+					}
+				} catch (err) {
+					reject(err)
+				}
+
+			});
+		});
+
     // this.getBlock(blockHeight, function(block) {
     //   // get block hash
     //   let blockHash = block.hash;
@@ -136,8 +161,9 @@ class Blockchain{
   validateChain(){
     let errorLog = [];
     for (var i = 0; i < this.chain.length-1; i++) {
-        this.validateBlock(i, function(isBlockValidation) {
+        this.validateBlock(i).then((isBlockValidation) => {
         // validate block
+				console.log(isBlockValidation)
         if (!isBlockValidation)errorLog.push(i);
         // compare blocks hash link
         let blockHash = this.chain[i].hash;
