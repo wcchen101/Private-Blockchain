@@ -11,16 +11,13 @@ let addLevelDBData = function(key, value) {
   return new Promise(function(resolve, reject) {
     db.put(key, value, function(err) {
       if (err) {
-        // callback('no key or value')
+        console.log('Block ' + key + ' submission failed', err);
         reject(err)
-        // return console.log('Block ' + key + ' submission failed', err);
       }
       resolve('Block inserted into db')
-      // callback(err);
     })
   })
 };
-
 
 // Get data from levelDB with key
 let getLevelDBData = function(key) {
@@ -29,11 +26,8 @@ let getLevelDBData = function(key) {
     if (err) {
       reject(err)
       console.log('Not found!', err);
-      // return console.log('Not found!', err);
     }
-    // callback(JSON.parse(value))
     resolve(JSON.parse(value))
-    // return key
     console.log('Value = ' + value);
     })
   })
@@ -59,11 +53,14 @@ let getAllLevelDBData = function() {
     db.createReadStream().on('data', function(data) {
         i++;
         }).on('error', function(err) {
+            console.log('Unable to read data stream!', err)
             reject(err)
-            // return console.log('Unable to read data stream!', err)
         }).on('close', function() {
-          // console.log('Block #' + i);
-          // addLevelDBData(i, value);
+          console.log('Block #' + i);
+          i -= 1
+          if (i == -1) {
+            i = 0
+          }
           console.log('db height', i)
           // callback(i)
           resolve(i)
@@ -85,14 +82,12 @@ let addDataToBlockchain = function() {
         })
         i++;
         }).on('error', function(err) {
+            console.log('Unable to read data stream!', err)
             reject(err)
-            // return console.log('Unable to read data stream!', err)
         }).on('close', function() {
-          // console.log('Block #' + i);
-
+          console.log('Block #' + i);
           console.log('originalChain', originalChain)
           resolve(originalChain)
-          // addLevelDBData(i, value);
       });
   });
 }
