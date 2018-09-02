@@ -1,3 +1,0 @@
-let b = new Blockchain();
-b.validateBlock(0);
-b.getBlockHeight();

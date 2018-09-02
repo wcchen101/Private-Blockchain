@@ -30,9 +30,9 @@ class Blockchain{
 		levelSandbox.getAllLevelDBData().then((height) => {
 			if (height == 0) {
 				let genesisBlock = new Block("First block in the chain - Genesis block")
-				// this.chain.push(genesisBlock)
 				this.addBlock(genesisBlock)
 			} else {
+        // TODO: it's better to reduce the memory use because the chain might be very long
 				levelSandbox.addDataToBlockchain().then((originalChain) => {
 					console.log('debug ',originalChain)
 					this.chain = this.chain.concat(originalChain)
@@ -79,9 +79,9 @@ class Blockchain{
   }
 
   // validate block
-  validateBlock(blockHeight){
+  async validateBlock(blockHeight){
     // get block object
-		return new Promise((resolve, reject) => {
+		return await new Promise((resolve, reject) => {
 			levelSandbox.getLevelDBData(blockHeight).then((block) => {
 				try {
 					// get block hash
@@ -106,35 +106,47 @@ class Blockchain{
   }
 
  // Validate blockchain
-  validateChain(){
+  async validateChain(){
     let errorLog = [];
-    return new Promise((resolve, reject) => {
+    let promiseBlock;
+    let promiseValidation = await new Promise((resolve, reject) => {
       for (let i = 0; i < this.chain.length; i++) {
           if (i == 0) {
             continue;
           }
-          this.validateBlock(i).then((isBlockValidation) => {
-          // validate block
-  				console.log(isBlockValidation)
-          if (!isBlockValidation)errorLog.push(i);
-          // compare blocks hash link
-  				console.log('hash', this.chain[i-1].hash)
-  				console.log('previsous hash', this.chain[i].previousBlockHash)
-          let blockHash = this.chain[i-1].hash;
-          let previousHash = this.chain[i].previousBlockHash;
-          if (blockHash!==previousHash) {
-            errorLog.push(i);
-          }
-        })
-      }
-      if (errorLog.length>0) {
-        console.log('Block errors = ' + errorLog.length);
-        console.log('Blocks: '+errorLog);
-        reject(false);
-      } else {
-        console.log('No errors detected');
+          promiseBlock = this.validateBlock(i).then((isBlockValidation) => {
+            // validate block
+    				console.log(isBlockValidation)
+            if (!isBlockValidation)errorLog.push(i);
+            // compare blocks hash link
+    				console.log('hash', this.chain[i-1].hash)
+    				console.log('previous hash', this.chain[i].previousBlockHash)
+            let blockHash = this.chain[i-1].hash;
+            let previousHash = this.chain[i].previousBlockHash;
+            if (blockHash!==previousHash) {
+              //mark problematic block as error block
+              this.chain[i].body = 'block error'
+              errorLog.push(i);
+              reject(false);
+            }
+          });
         resolve(true);
       }
     });
+
+
+    let res = await Promise.all([
+      promiseValidation,
+      promiseBlock,
+    ]);
+
+    if (errorLog.length>0) {
+      console.log('Block errors = ' + errorLog.length);
+      console.log('Blocks: '+errorLog);
+      console.log('##### The validation result is not passed!');
+    } else {
+      console.log('No errors detected');
+      console.log('##### The validation result is passed! ');
+    }
   }
 }
