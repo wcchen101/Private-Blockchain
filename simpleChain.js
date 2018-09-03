@@ -26,17 +26,18 @@ class Block{
 
 class Blockchain{
   constructor(){
-		this.chain = [];
+		// this.chain = [];
+    this.chainLength = 0;
 		levelSandbox.getAllLevelDBData().then((height) => {
 			if (height == 0) {
 				let genesisBlock = new Block("First block in the chain - Genesis block")
 				this.addBlock(genesisBlock)
 			} else {
         // TODO: it's better to reduce the memory use because the chain might be very long
-				levelSandbox.addDataToBlockchain().then((originalChain) => {
-					console.log('debug ',originalChain)
-					this.chain = this.chain.concat(originalChain)
-				}).then(console.log(this.chain))
+				// levelSandbox.addDataToBlockchain().then((originalChain) => {
+				// 	this.chain = this.chain.concat(originalChain)
+				// }).then(console.log(this.chain))
+        this.chainLength = height + 1;
 			}
 		});
   }
@@ -44,18 +45,20 @@ class Blockchain{
   // Add new block
   addBlock(newBlock){
     // Block height
-    newBlock.height = this.chain.length;
-
+    // newBlock.height = this.chain.length;
+    this.getBlockHeight().then((height) => {
+      newBlock.height = height + 1
+    });
     // UTC timestamp
     newBlock.time = new Date().getTime().toString().slice(0,-3);
     // previous block hash
-    if(this.chain.length>0){
-      newBlock.previousBlockHash = this.chain[this.chain.length-1].hash;
+    if(this.chainLength > 0){
+      newBlock.previousBlockHash = this.chain[this.chainLength-1].hash;
     }
     // Block hash with SHA256 using newBlock and converting to a string
     newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
     // Adding block object to chain
-    this.chain.push(newBlock);
+    // this.chain.push(newBlock);
     levelSandbox.addLevelDBData(newBlock.height, JSON.stringify(newBlock)).then((data) => console.log(data))
   }
 
@@ -70,10 +73,14 @@ class Blockchain{
   }
 
   // get block
-  getBlock(blockHeight){
-    return new Promise((resolve, reject) => {
+  async getBlock(blockHeight){
+    return await new Promise((resolve, reject) => {
       levelSandbox.getLevelDBData(blockHeight).then((block) => {
-        resolve(block)
+        try {
+          resolve(block)
+        } catch (err) {
+          reject(err)
+        }
       });
     });
   }
@@ -109,23 +116,37 @@ class Blockchain{
   async validateChain(){
     let errorLog = [];
     let promiseBlock;
+    let promisePreBlock;
+    let promiseCurBlock;
     let promiseValidation = await new Promise((resolve, reject) => {
-      for (let i = 0; i < this.chain.length; i++) {
+      for (let i = 0; i < this.chainLength; i++) {
           if (i == 0) {
             continue;
           }
+
+          let preBlock;
+          let curBlock;
+          promisePreBlock = this.getBlock(i - 1).then((block) => {
+            preBlock = block
+
+          });
+          promiseCurBlock = this.getBlock(i).then((block) => {
+            curBlock = block
+          });
+
           promiseBlock = this.validateBlock(i).then((isBlockValidation) => {
             // validate block
     				console.log(isBlockValidation)
             if (!isBlockValidation)errorLog.push(i);
+
             // compare blocks hash link
-    				console.log('hash', this.chain[i-1].hash)
-    				console.log('previous hash', this.chain[i].previousBlockHash)
-            let blockHash = this.chain[i-1].hash;
-            let previousHash = this.chain[i].previousBlockHash;
+    				console.log('hash', preBlock.hash)
+    				console.log('previous hash', curBlock.previousBlockHash)
+            let blockHash = preBlock.hash;
+            let previousHash = curBlock.previousBlockHash;
             if (blockHash!==previousHash) {
               //mark problematic block as error block
-              this.chain[i].body = 'block error'
+              curBlock.body = 'block error'
               errorLog.push(i);
               reject(false);
             }
@@ -134,19 +155,21 @@ class Blockchain{
       }
     });
 
-
     let res = await Promise.all([
       promiseValidation,
       promiseBlock,
+      promisePreBlock,
+      promiseCurBlock
     ]);
 
+    console.log('-----***** The validation result is below *****-----');
     if (errorLog.length>0) {
+      console.log('***** The validation result is not passed! *****');
       console.log('Block errors = ' + errorLog.length);
-      console.log('Blocks: '+errorLog);
-      console.log('##### The validation result is not passed!');
+      console.log('Blocks: '+ errorLog);
     } else {
+      console.log('***** The validation result is passed! *****');
       console.log('No errors detected');
-      console.log('##### The validation result is passed! ');
     }
   }
 }
