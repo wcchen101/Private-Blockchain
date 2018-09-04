@@ -27,7 +27,6 @@ class Block{
 class Blockchain{
   constructor(){
 		// this.chain = [];
-    this.chainLength = 0;
 		levelSandbox.getAllLevelDBData().then((height) => {
 			if (height == 0) {
 				let genesisBlock = new Block("First block in the chain - Genesis block")
@@ -37,23 +36,35 @@ class Blockchain{
 				// levelSandbox.addDataToBlockchain().then((originalChain) => {
 				// 	this.chain = this.chain.concat(originalChain)
 				// }).then(console.log(this.chain))
-        this.chainLength = height + 1;
+        // this.getBlockHeight().then((height) => {
+        //   this.chainLength = height + 1
+        // })
 			}
 		});
   }
 
   // Add new block
-  addBlock(newBlock){
+  async addBlock(newBlock){
     // Block height
     // newBlock.height = this.chain.length;
-    this.getBlockHeight().then((height) => {
-      newBlock.height = height + 1
-    });
+    let previousBlock;
+    let chainLength;
+    if (newBlock.body !== 'First block in the chain - Genesis block') {
+      await this.getBlockHeight().then((height) => {
+        newBlock.height = height + 1
+        chainLength = height + 1
+
+      });
+      console.log('chainLength', chainLength)
+      await this.getBlock(chainLength-1).then((block) => {
+        previousBlock = block
+      })
+    }
     // UTC timestamp
     newBlock.time = new Date().getTime().toString().slice(0,-3);
     // previous block hash
-    if(this.chainLength > 0){
-      newBlock.previousBlockHash = this.chain[this.chainLength-1].hash;
+    if(chainLength > 0){
+      newBlock.previousBlockHash = previousBlock.hash;
     }
     // Block hash with SHA256 using newBlock and converting to a string
     newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
@@ -63,8 +74,8 @@ class Blockchain{
   }
 
   // Get block height
-	getBlockHeight(){
-    return new Promise((resolve) => {
+	async getBlockHeight(){
+    return await new Promise((resolve) => {
 			levelSandbox.getAllLevelDBData().then((height) => {
 				console.log('height', height)
 				resolve(height)
@@ -118,8 +129,13 @@ class Blockchain{
     let promiseBlock;
     let promisePreBlock;
     let promiseCurBlock;
+    let chainLength;
+    await this.getBlockHeight().then((height) => {
+      chainLength = height + 1
+    });
+
     let promiseValidation = await new Promise((resolve, reject) => {
-      for (let i = 0; i < this.chainLength; i++) {
+      for (let i = 0; i < chainLength; i++) {
           if (i == 0) {
             continue;
           }

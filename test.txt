@@ -1,4 +1,8 @@
 b.validateBlock(0);
 b.getBlockHeight();
 let b = new Blockchain();
+let a = new Block('hello world');
+let c = new Block('ccc');
+b.addBlock(a);
+b.addBlock(c);
 b.validateChain()

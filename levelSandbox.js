@@ -62,7 +62,6 @@ let getAllLevelDBData = function() {
             i = 0
           }
           console.log('db height', i)
-          // callback(i)
           resolve(i)
         }).on('end', function() {
 
