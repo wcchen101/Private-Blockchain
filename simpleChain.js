@@ -6,19 +6,21 @@ const SHA256 = require('crypto-js/sha256');
 
 const levelSandbox = require('./levelSandbox');
 
-/* ===== Block Class ==============================
-|  Class with a constructor for block          |
-|  ===============================================*/
-
-class Block{
-  constructor(data){
-     this.hash = "",
-     this.height = 0,
-     this.body = data,
-     this.time = 0,
-     this.previousBlockHash = ""
-  }
-}
+const Block = require('./simpleBlock');
+// import Block from './simpleBlock';
+// /* ===== Block Class ==============================
+// |  Class with a constructor for block          |
+// |  ===============================================*/
+//
+// class Block{
+//   constructor(data){
+//      this.hash = "",
+//      this.height = 0,
+//      this.body = data,
+//      this.time = 0,
+//      this.previousBlockHash = ""
+//   }
+// }
 
 /* ===== Blockchain Class ==========================
 |  Class with a constructor for new blockchain    |
@@ -31,14 +33,6 @@ class Blockchain{
 			if (height == 0) {
 				let genesisBlock = new Block("First block in the chain - Genesis block")
 				this.addBlock(genesisBlock)
-			} else {
-        // TODO: it's better to reduce the memory use because the chain might be very long
-				// levelSandbox.addDataToBlockchain().then((originalChain) => {
-				// 	this.chain = this.chain.concat(originalChain)
-				// }).then(console.log(this.chain))
-        // this.getBlockHeight().then((height) => {
-        //   this.chainLength = height + 1
-        // })
 			}
 		});
   }
