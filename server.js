@@ -2,11 +2,15 @@
 
 const Hapi = require('hapi');
 
+const Blockchain = require('./simpleChain');
+
 // Create a server with a host and port
 const server = Hapi.server({
     host: 'localhost',
     port: 8000
 });
+
+let blockchain = new Blockchain();
 
 // Add the route
 server.route({
@@ -14,6 +18,16 @@ server.route({
     path: '/hello',
     handler: function(request,h) {
         return'hello world';
+    }
+});
+
+// api for getting certain block
+server.route({
+    method: 'GET',
+    path: '/block/{id}',
+    handler: (request, h) => {
+      return blockchain.getBlock(request.params.id)
+           .then((res) => res)
     }
 });
 

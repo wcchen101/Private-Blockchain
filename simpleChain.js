@@ -26,7 +26,7 @@ const Block = require('./simpleBlock');
 |  Class with a constructor for new blockchain    |
 |  ================================================*/
 
-class Blockchain{
+module.exports = class Blockchain{
   constructor(){
 		// this.chain = [];
 		levelSandbox.getAllLevelDBData().then((height) => {
