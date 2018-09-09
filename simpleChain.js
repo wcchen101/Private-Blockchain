@@ -29,11 +29,16 @@ const Block = require('./simpleBlock');
 module.exports = class Blockchain{
   constructor(){
 		// this.chain = [];
+    this.blockHeight;
 		levelSandbox.getAllLevelDBData().then((height) => {
 			if (height == 0) {
 				let genesisBlock = new Block("First block in the chain - Genesis block")
 				this.addBlock(genesisBlock)
-			}
+			} else {
+        this.getBlockHeight().then((height) => {
+          this.blockHeight = height
+        });
+      }
 		});
   }
 
@@ -48,6 +53,8 @@ module.exports = class Blockchain{
         newBlock.height = height + 1
         chainLength = height + 1
 
+        //add to blockHeight
+        this.blockHeight = height + 1
       });
       console.log('chainLength', chainLength)
       await this.getBlock(chainLength-1).then((block) => {
