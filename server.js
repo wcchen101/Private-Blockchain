@@ -55,12 +55,13 @@ server.route({
         let payloadParsed = JSON.parse(request.payload);
         console.log(payloadParsed, typeof payloadParsed);
         if (payloadParsed.body != undefined && payloadParsed.body !== '') {
+          let res = {'body': payloadParsed.body}
           let newBlock = new Block(payloadParsed.body);
           console.log('new block', newBlock)
           console.log('success')
           return new Promise((resolve, reject) => {
             blockchain.addBlock(newBlock)
-                      .then(resolve('success'))
+                      .then(resolve(JSON.stringify(res)))
                       .catch(reject('error'))
           });
         } else {
