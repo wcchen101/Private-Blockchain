@@ -68,3 +68,4 @@ blockchain.validateChain();
 ### Reference
 - Udacity coursework
 - Udacity exclusive Knowledge forum
+- Redis usage: https://hackernoon.com/using-redis-with-node-js-8d87a48c5dd7
