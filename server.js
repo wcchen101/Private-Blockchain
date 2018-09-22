@@ -4,11 +4,25 @@ const Hapi = require('hapi');
 
 const Blockchain = require('./simpleChain');
 const Block = require('./simpleBlock');
+const common = require('./utils/common');
 
 // Create a server with a host and port
 const server = Hapi.server({
     host: 'localhost',
     port: 8000
+});
+
+const validationWindow = 300;
+
+let redis = require('redis');
+let client = redis.createClient(); // default: 127.0.0.1 and port 6379
+
+client.on('connect', function() {
+    console.log('Redis client successfully connected! ');
+});
+
+client.on('error', function (err) {
+    console.log('Some error happened in redis: ' + err);
 });
 
 let blockchain = new Blockchain();
@@ -72,6 +86,54 @@ server.route({
         console.log(err);
         return 'error';
       }
+    }
+});
+
+
+// api for getting certain block
+server.route({
+    method: 'POST',
+    path: '/requestValidation',
+    handler: (request, h) => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          let payloadParsed = JSON.parse(request.payload);
+          console.log(payloadParsed, typeof payloadParsed, payloadParsed.address);
+          if (payloadParsed.address != undefined && payloadParsed.address !== '') {
+
+            // TODO: check cache
+            let cachedRes;
+            await common.getResInRedis(client, payloadParsed.address).then((res) => {
+              cachedRes = res
+            });
+            console.log('server cache result',cachedRes)
+            if (cachedRes != undefined || cachedRes) {
+              console.log('use cache')
+              return resolve(cachedRes)
+            }
+            console.log('no cache')
+
+            let address = payloadParsed.address
+            let currentTimestamp = common.getCurrentTime()
+            let message = common.generateMessage(address, currentTimestamp, 'startRegistry')
+
+            let res = common.setResponse(address, currentTimestamp, message, validationWindow)
+
+            //set req info into redis
+            common.setResInRedis(client, address, res, validationWindow)
+
+            console.log('there', res)
+            return resolve(JSON.stringify(res))
+
+          } else {
+            console.log('error here');
+            return reject('error');
+          }
+        } catch(err) {
+          console.log(err);
+          return reject('error');
+        }
+      });
     }
 });
 
