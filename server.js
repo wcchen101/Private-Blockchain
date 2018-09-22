@@ -5,6 +5,7 @@ const Hapi = require('hapi');
 const Blockchain = require('./simpleChain');
 const Block = require('./simpleBlock');
 const common = require('./utils/common');
+const config = require('./utils/config');
 
 // Create a server with a host and port
 const server = Hapi.server({
@@ -13,6 +14,7 @@ const server = Hapi.server({
 });
 
 const validationWindow = 300;
+const privateKey = config.privateKey
 
 let redis = require('redis');
 let client = redis.createClient(); // default: 127.0.0.1 and port 6379
@@ -90,7 +92,7 @@ server.route({
 });
 
 
-// api for getting certain block
+// api for requesting validation
 server.route({
     method: 'POST',
     path: '/requestValidation',
@@ -132,6 +134,46 @@ server.route({
         } catch(err) {
           console.log(err);
           return reject('error');
+        }
+      });
+    }
+});
+
+// api for requesting validation
+server.route({
+    method: 'POST',
+    path: '/message-signature/validate',
+    handler: (request, h) => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          let payloadParsed = JSON.parse(request.payload);
+
+          console.log(payloadParsed, typeof payloadParsed, payloadParsed.address);
+          if (payloadParsed.address != undefined && payloadParsed.address !== '') {
+
+            let cachedRes;
+            await common.getResInRedis(client, payloadParsed.address).then((res) => {
+              cachedRes = JSON.parse(res)
+            });
+
+            if (cachedRes == undefined || !cachedRes) {
+              return resolve('error')
+            };
+
+            let address = payloadParsed.address
+            let signature = payloadParsed.signature
+            let message = cachedRes.message
+            console.log('message', cachedRes.message)
+            console.log('private key', privateKey)
+            let isValid = await common.checkIsSignatureValidate(message, privateKey, signature)
+            return resolve(isValid)
+          } else {
+            console.log('error here');
+            return resolve('error');
+          }
+        } catch(err) {
+          console.log(err);
+          return reject(err);
         }
       });
     }
