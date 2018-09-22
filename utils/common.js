@@ -45,18 +45,13 @@ let getResInRedis = function (client, key) {
   })
 }
 
-let checkIsSignatureValidate = function(message, privateKey2, signature) {
+let checkIsSignatureValidate = function(message, address, signature) {
   return new Promise((resolve, reject) => {
-    let keyPair = bitcoin.ECPair.fromWIF(config.WIFKey)
-    let privateKey = keyPair.privateKey
     console.log(message, privateKey, keyPair)
-    let newSignature = bitcoinMessage.sign(message, privateKey, keyPair.compressed).toString('base64')
-    console.log('signature', newSignature.toString('base64'))
-    if (newSignature === signature) {
-      console.log('true')
+    let isValid = bitcoinMessage.verify(message, address, signature)
+    if (isValid) {
       return resolve(true)
     }
-    console.log('false')
     return resolve(false)
   });
 }
