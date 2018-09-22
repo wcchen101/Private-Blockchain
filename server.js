@@ -67,27 +67,42 @@ server.route({
     method: 'POST',
     path: '/block',
     handler: (request, h) => {
-      try {
-        let payloadParsed = JSON.parse(request.payload);
-        console.log(payloadParsed, typeof payloadParsed);
-        if (payloadParsed.body != undefined && payloadParsed.body !== '') {
-          let res = {'body': payloadParsed.body}
-          let newBlock = new Block(payloadParsed.body);
-          console.log('new block', newBlock)
-          console.log('success')
-          return new Promise((resolve, reject) => {
-            blockchain.addBlock(newBlock)
-                      .then(resolve(JSON.stringify(res)))
-                      .catch(reject('error'))
-          });
-        } else {
-          console.log('error here');
-          return 'error';
+      return new Promise(async (resolve, reject) => {
+        try {
+          console.log('request payload',request.payload )
+          let payloadParsed = JSON.parse(request.payload);
+          console.log(payloadParsed, typeof payloadParsed);
+          if (payloadParsed != undefined && payloadParsed !== '') {
+            // let res = {'body': payloadParsed.body}
+            let res = {}
+            let body = {}
+
+            //set block body
+            body.address = payloadParsed.address
+            body.star = payloadParsed.star
+
+            let newBlock = new Block(body);
+            console.log('new block', newBlock)
+            console.log('success')
+            // return new Promise((resolve, reject) => {
+            //   blockchain.addBlock(newBlock)
+            //             .then(resolve(JSON.stringify(res)))
+            //             .catch(reject('error'))
+            // });
+            let blockHeight = await blockchain.addBlock(newBlock)
+            console.log('bh ', blockHeight)
+            let addedBlock = await blockchain.getBlock(blockHeight)
+            res = addedBlock
+            resolve(res)
+          } else {
+            console.log('error here');
+            return resolve('error');
+          }
+        } catch(err) {
+          console.log(err);
+          return reject(err);
         }
-      } catch(err) {
-        console.log(err);
-        return 'error';
-      }
+      });
     }
 });
 
