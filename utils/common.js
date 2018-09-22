@@ -47,11 +47,13 @@ let getResInRedis = function (client, key) {
 
 let checkIsSignatureValidate = function(message, address, signature) {
   return new Promise((resolve, reject) => {
-    console.log(message, privateKey, keyPair)
+    console.log(message, address, signature)
     let isValid = bitcoinMessage.verify(message, address, signature)
     if (isValid) {
+      console.log('validation result: ', isValid)
       return resolve(true)
     }
+    console.log('validation result: ', isValid)
     return resolve(false)
   });
 }

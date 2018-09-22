@@ -180,7 +180,7 @@ server.route({
             let message = cachedRes.message
             console.log('message', cachedRes.message)
             console.log('private key', privateKey)
-            let isValid = await common.checkIsSignatureValidate(message, privateKey, signature)
+            let isValid = await common.checkIsSignatureValidate(message, address, signature)
             return resolve(isValid)
           } else {
             console.log('error here');
