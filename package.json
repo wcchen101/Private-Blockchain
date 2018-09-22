@@ -19,6 +19,7 @@
   "dependencies": {
     "crypto-js": "^3.1.9-1",
     "hapi": "^17.5.4",
-    "level": "^4.0.0"
+    "level": "^4.0.0",
+    "redis": "^2.8.0"
   }
 }
