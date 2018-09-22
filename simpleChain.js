@@ -46,32 +46,35 @@ module.exports = class Blockchain{
   async addBlock(newBlock){
     // Block height
     // newBlock.height = this.chain.length;
-    let previousBlock;
-    let chainLength;
-    if (newBlock.body !== 'First block in the chain - Genesis block') {
-      await this.getBlockHeight().then((height) => {
-        newBlock.height = height + 1
-        chainLength = height + 1
+    return new Promise(async (resolve, reject) => {
+      let previousBlock;
+      let chainLength;
+      if (newBlock.body !== 'First block in the chain - Genesis block') {
+        await this.getBlockHeight().then((height) => {
+          newBlock.height = height + 1
+          chainLength = height + 1
 
-        //add to blockHeight
-        this.blockHeight = height + 1
-      });
-      console.log('chainLength', chainLength)
-      await this.getBlock(chainLength-1).then((block) => {
-        previousBlock = block
-      })
-    }
-    // UTC timestamp
-    newBlock.time = new Date().getTime().toString().slice(0,-3);
-    // previous block hash
-    if(chainLength > 0){
-      newBlock.previousBlockHash = previousBlock.hash;
-    }
-    // Block hash with SHA256 using newBlock and converting to a string
-    newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
-    // Adding block object to chain
-    // this.chain.push(newBlock);
-    levelSandbox.addLevelDBData(newBlock.height, JSON.stringify(newBlock)).then((data) => console.log(data))
+          //add to blockHeight
+          this.blockHeight = height + 1
+        });
+        console.log('chainLength', chainLength)
+        await this.getBlock(chainLength-1).then((block) => {
+          previousBlock = block
+        })
+      }
+      // UTC timestamp
+      newBlock.time = new Date().getTime().toString().slice(0,-3);
+      // previous block hash
+      if(chainLength > 0){
+        newBlock.previousBlockHash = previousBlock.hash;
+      }
+      // Block hash with SHA256 using newBlock and converting to a string
+      newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
+      // Adding block object to chain
+      // this.chain.push(newBlock);
+      levelSandbox.addLevelDBData(newBlock.height, JSON.stringify(newBlock)).then((data) => console.log(data))
+      resolve(newBlock.height)
+    });
   }
 
   // Get block height
