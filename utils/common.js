@@ -1,8 +1,6 @@
 var bitcoin = require('bitcoinjs-lib') // v3.x.x
 var bitcoinMessage = require('bitcoinjs-message')
 
-let config = require('./config')
-
 let getCurrentTime = function () {
   let date = new Date()
   let curTimestamp = date.getTime()

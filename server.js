@@ -5,7 +5,6 @@ const Hapi = require('hapi');
 const Blockchain = require('./simpleChain');
 const Block = require('./simpleBlock');
 const common = require('./utils/common');
-const config = require('./utils/config');
 
 // Create a server with a host and port
 const server = Hapi.server({
@@ -14,7 +13,6 @@ const server = Hapi.server({
 });
 
 const validationWindow = 300;
-const privateKey = config.privateKey
 
 let redis = require('redis');
 let client = redis.createClient(); // default: 127.0.0.1 and port 6379
@@ -57,7 +55,7 @@ server.route({
           }
 
           blockchain.getBlock(targetBlockId).then((res) => resolve(res));
-          
+
         } catch(err) {
           console.log('catch error', err)
           return reject(err);
