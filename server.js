@@ -62,6 +62,33 @@ server.route({
     }
 });
 
+// api for getting certain stars using addrss
+server.route({
+    method: 'GET',
+    path: '/stars/address:{address}',
+    handler: (request, h) => {
+      return new Promise(async (resolve, reject) => {
+        let targetAddress = request.params.address
+        let blockHeight = blockchain.blockHeight
+        let foundBlock = []
+
+        try {
+          for (let i = 0; i < blockHeight + 1; i++) {
+            let block = await blockchain.getBlock(i)
+            if (block.body != undefined && block.body.address != undefined && block.body.address === targetAddress) {
+              foundBlock.push(block)
+            }
+          }
+          resolve(foundBlock)
+        } catch(err) {
+          console.log(err)
+          reject(err)
+        }
+      });
+    }
+});
+
+
 // api for post new block
 server.route({
     method: 'POST',
