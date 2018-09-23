@@ -75,7 +75,7 @@ server.route({
         try {
           for (let i = 0; i < blockHeight + 1; i++) {
             let block = await blockchain.getBlock(i)
-            if (block.body != undefined && block.body.address != undefined && block.body.address === targetAddress) {
+            if (block != undefined && block.body != undefined && block.body.address != undefined && block.body.address === targetAddress) {
               foundBlock.push(block)
             }
           }
@@ -88,6 +88,33 @@ server.route({
     }
 });
 
+// api for getting certain stars using blockHashs
+server.route({
+    method: 'GET',
+    path: '/stars/hash:{hash}',
+    handler: (request, h) => {
+      return new Promise(async (resolve, reject) => {
+        let targetBlockHash = request.params.hash
+        let blockHeight = blockchain.blockHeight
+        let foundBlock;
+
+        try {
+          for (let i = 0; i < blockHeight + 1; i++) {
+            let block = await blockchain.getBlock(i)
+            if (block != undefined && block.hash != undefined && block.hash === targetBlockHash) {
+              foundBlock = block
+              break
+            }
+          }
+
+          resolve(foundBlock)
+        } catch(err) {
+          console.log(err)
+          reject(err)
+        }
+      });
+    }
+});
 
 // api for post new block
 server.route({
