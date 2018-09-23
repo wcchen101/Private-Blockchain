@@ -51,13 +51,14 @@ server.route({
         try {
           // check if id greater than block height
           if (targetBlockId > blockHeight) {
-            console.log('error')
-            return resolve('error')
+            let response = common.setErrorMessage('404', 'cannot find the block using this id')
+            console.log('error: ', response)
+            return resolve(response)
           }
 
           blockchain.getBlock(targetBlockId).then((res) => resolve(res));
         } catch(err) {
-          console.log('error')
+          console.log('catch error', err)
           return reject(err);
         }
 
@@ -152,11 +153,12 @@ server.route({
             res = addedBlock
             return resolve(res)
           } else {
-            console.log('error here');
-            return resolve('error');
+            let response = common.setErrorMessage('500', 'internal server error, post body might have error')
+            console.log('error: ', response)
+            return resolve(response)
           }
         } catch(err) {
-          console.log(err);
+          console.log('error', err);
           return reject(err);
         }
       });
@@ -200,8 +202,9 @@ server.route({
             return resolve(JSON.stringify(res))
 
           } else {
-            console.log('error here');
-            return reject('error');
+            let response = common.setErrorMessage('500', 'internal server error, post body might have error')
+            console.log('error: ', response)
+            return resolve(response)
           }
         } catch(err) {
           console.log(err);
@@ -244,8 +247,9 @@ server.route({
             console.log('validation response',response )
             return resolve(response)
           } else {
-            console.log('error here');
-            return resolve('error');
+            let response = common.setErrorMessage('500', 'internal server error, post body might have error')
+            console.log('error: ', response)
+            return resolve(response)
           }
         } catch(err) {
           console.log(err);

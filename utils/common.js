@@ -59,7 +59,7 @@ let getResInRedis = function (client, key) {
       resolve(res)
     });
   })
-}
+};
 
 let checkIsSignatureValidate = function(message, address, signature) {
   return new Promise((resolve, reject) => {
@@ -72,7 +72,16 @@ let checkIsSignatureValidate = function(message, address, signature) {
     console.log('validation result: ', isValid)
     return resolve(false)
   });
-}
+};
+
+let setErrorMessage = function(status, error) {
+  let response = {
+    "statusCode": status,
+    "error": error,
+    "message": "Cannot find pages or internal server error. Please check the status code"
+  }
+  return response
+};
 
 exports.getCurrentTime = getCurrentTime;
 exports.generateMessage = generateMessage;
@@ -81,3 +90,4 @@ exports.setResInRedis = setResInRedis;
 exports.getResInRedis = getResInRedis;
 exports.checkIsSignatureValidate = checkIsSignatureValidate;
 exports.setValidationResponse = setValidationResponse;
+exports.setErrorMessage = setErrorMessage;
