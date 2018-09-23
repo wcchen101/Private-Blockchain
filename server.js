@@ -57,6 +57,7 @@ server.route({
           }
 
           blockchain.getBlock(targetBlockId).then((res) => resolve(res));
+          
         } catch(err) {
           console.log('catch error', err)
           return reject(err);
@@ -83,7 +84,9 @@ server.route({
               foundBlock.push(block)
             }
           }
+
           return resolve(foundBlock)
+
         } catch(err) {
           console.log(err)
           return reject(err)
@@ -112,6 +115,7 @@ server.route({
           }
 
           return resolve(foundBlock)
+
         } catch(err) {
           console.log(err)
           return reject(err)
@@ -127,11 +131,8 @@ server.route({
     handler: (request, h) => {
       return new Promise(async (resolve, reject) => {
         try {
-          console.log('request payload',request.payload )
           let payloadParsed = JSON.parse(request.payload);
-          console.log(payloadParsed, typeof payloadParsed);
           if (payloadParsed != undefined && payloadParsed !== '') {
-            // let res = {'body': payloadParsed.body}
             let res = {}
             let body = {}
 
@@ -140,18 +141,13 @@ server.route({
             body.star = payloadParsed.star
 
             let newBlock = new Block(body);
-            console.log('new block', newBlock)
-            console.log('success')
-            // return new Promise((resolve, reject) => {
-            //   blockchain.addBlock(newBlock)
-            //             .then(resolve(JSON.stringify(res)))
-            //             .catch(reject('error'))
-            // });
             let blockHeight = await blockchain.addBlock(newBlock)
-            console.log('bh ', blockHeight)
             let addedBlock = await blockchain.getBlock(blockHeight)
+
             res = addedBlock
+
             return resolve(res)
+
           } else {
             let response = common.setErrorMessage('500', 'internal server error, post body might have error')
             console.log('error: ', response)
@@ -174,15 +170,13 @@ server.route({
       return new Promise(async (resolve, reject) => {
         try {
           let payloadParsed = JSON.parse(request.payload);
-          console.log(payloadParsed, typeof payloadParsed, payloadParsed.address);
           if (payloadParsed.address != undefined && payloadParsed.address !== '') {
 
-            // TODO: check cache
+            // check cache
             let cachedRes;
             await common.getResInRedis(client, payloadParsed.address).then((res) => {
               cachedRes = res
             });
-            console.log('server cache result',cachedRes)
             if (cachedRes != undefined || cachedRes) {
               console.log('use cache')
               return resolve(cachedRes)
@@ -198,7 +192,6 @@ server.route({
             //set req info into redis
             common.setResInRedis(client, address, res, validationWindow)
 
-            console.log('there', res)
             return resolve(JSON.stringify(res))
 
           } else {
@@ -223,7 +216,6 @@ server.route({
         try {
           let payloadParsed = JSON.parse(request.payload);
 
-          console.log(payloadParsed, typeof payloadParsed, payloadParsed.address);
           if (payloadParsed.address != undefined && payloadParsed.address !== '') {
 
             let cachedRes;
@@ -240,12 +232,12 @@ server.route({
             let message = cachedRes.message
             let requestTimeStamp = cachedRes.requestTimeStamp
 
-            console.log('message', cachedRes.message)
-            console.log('private key', privateKey)
+
             let isValid = await common.checkIsSignatureValidate(message, address, signature)
             let response = common.setValidationResponse(address, requestTimeStamp, message, isValid)
-            console.log('validation response',response )
+
             return resolve(response)
+
           } else {
             let response = common.setErrorMessage('500', 'internal server error, post body might have error')
             console.log('error: ', response)

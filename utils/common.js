@@ -42,7 +42,8 @@ let setValidationResponse = function (address, requestTimeStamp, message, isVali
 let setResInRedis = function (client, key, res, validationWindow) {
   let resStr = JSON.stringify(res)
   client.set(key, resStr);
-  //TODO: modify time to validationWindow for prod purpose
+
+  // modify time to validationWindow for prod purpose
   client.expire(key, validationWindow);
   console.log('set into redis successfully for ' + validationWindow + ' seconds')
   return 'success'
@@ -63,13 +64,12 @@ let getResInRedis = function (client, key) {
 
 let checkIsSignatureValidate = function(message, address, signature) {
   return new Promise((resolve, reject) => {
-    console.log(message, address, signature)
     let isValid = bitcoinMessage.verify(message, address, signature)
+
     if (isValid) {
-      console.log('validation result: ', isValid)
       return resolve(true)
     }
-    console.log('validation result: ', isValid)
+
     return resolve(false)
   });
 };
