@@ -134,7 +134,7 @@ server.route({
             let currentTimestamp = common.getCurrentTime()
             let message = common.generateMessage(address, currentTimestamp, 'startRegistry')
 
-            let res = common.setResponse(address, currentTimestamp, message, validationWindow)
+            let res = common.setReqValResponse(address, currentTimestamp, message, validationWindow)
 
             //set req info into redis
             common.setResInRedis(client, address, res, validationWindow)
@@ -178,10 +178,14 @@ server.route({
             let address = payloadParsed.address
             let signature = payloadParsed.signature
             let message = cachedRes.message
+            let requestTimeStamp = cachedRes.requestTimeStamp
+
             console.log('message', cachedRes.message)
             console.log('private key', privateKey)
             let isValid = await common.checkIsSignatureValidate(message, address, signature)
-            return resolve(isValid)
+            let response = common.setValidationResponse(address, requestTimeStamp, message, isValid)
+            console.log('validation response',response )
+            return resolve(response)
           } else {
             console.log('error here');
             return resolve('error');

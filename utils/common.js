@@ -13,12 +13,28 @@ let generateMessage = function (address, timestamp, message) {
   return address + ':' + timestamp + ':' + message
 };
 
-let setResponse = function (address, requestTimeStamp, message, validationWindow) {
+let setReqValResponse = function (address, requestTimeStamp, message, validationWindow) {
   let response = {
     "address": address,
     "requestTimeStamp": requestTimeStamp,
     "message": message,
     "validationWindow": validationWindow
+  }
+  return response
+}
+
+let setValidationResponse = function (address, requestTimeStamp, message, isValid) {
+  let curTimestamp = getCurrentTime()
+  let remainingTimeWindow = curTimestamp - requestTimeStamp
+  let response = {
+    "registerStar": true,
+    "status": {
+      "address": address,
+      "requestTimeStamp": requestTimeStamp,
+      "message": message
+    },
+    "validationWindow": remainingTimeWindow,
+    "messageSignature": isValid
   }
   return response
 }
@@ -60,7 +76,8 @@ let checkIsSignatureValidate = function(message, address, signature) {
 
 exports.getCurrentTime = getCurrentTime;
 exports.generateMessage = generateMessage;
-exports.setResponse = setResponse;
+exports.setReqValResponse = setReqValResponse;
 exports.setResInRedis = setResInRedis;
 exports.getResInRedis = getResInRedis;
 exports.checkIsSignatureValidate = checkIsSignatureValidate;
+exports.setValidationResponse = setValidationResponse;
