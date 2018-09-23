@@ -44,20 +44,23 @@ server.route({
     path: '/block/{id}',
     handler: (request, h) => {
       return new Promise((resolve, reject) => {
+        let targetBlockId = request.params.id
         let blockHeight = blockchain.blockHeight
 
-        // check if id greater than block height
-        if (request.params.id > blockHeight) {
-          console.log('error')
-          resolve('error')
-        } else {
-          //ok to get block
-          try {
-            blockchain.getBlock(request.params.id).then((res) => resolve(res));
-          } catch(err) {
-            reject('error');
+        //ok to get block
+        try {
+          // check if id greater than block height
+          if (targetBlockId > blockHeight) {
+            console.log('error')
+            return resolve('error')
           }
+
+          blockchain.getBlock(targetBlockId).then((res) => resolve(res));
+        } catch(err) {
+          console.log('error')
+          return reject(err);
         }
+
       });
     }
 });
@@ -79,10 +82,10 @@ server.route({
               foundBlock.push(block)
             }
           }
-          resolve(foundBlock)
+          return resolve(foundBlock)
         } catch(err) {
           console.log(err)
-          reject(err)
+          return reject(err)
         }
       });
     }
@@ -107,10 +110,10 @@ server.route({
             }
           }
 
-          resolve(foundBlock)
+          return resolve(foundBlock)
         } catch(err) {
           console.log(err)
-          reject(err)
+          return reject(err)
         }
       });
     }
@@ -147,7 +150,7 @@ server.route({
             console.log('bh ', blockHeight)
             let addedBlock = await blockchain.getBlock(blockHeight)
             res = addedBlock
-            resolve(res)
+            return resolve(res)
           } else {
             console.log('error here');
             return resolve('error');
