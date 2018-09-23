@@ -83,6 +83,12 @@ server.route({
             }
           }
 
+          if (foundBlock == undefined || foundBlock.length == 0) {
+            let response = common.setErrorMessage('404', 'cannot find the block using this address')
+            console.log('error: ', response)
+            return resolve(response)
+          }
+
           return resolve(foundBlock)
 
         } catch(err) {
@@ -110,6 +116,12 @@ server.route({
               foundBlock = block
               break
             }
+          }
+
+          if (foundBlock == undefined) {
+            let response = common.setErrorMessage('404', 'cannot find the block using this hash')
+            console.log('error: ', response)
+            return resolve(response)
           }
 
           return resolve(foundBlock)
