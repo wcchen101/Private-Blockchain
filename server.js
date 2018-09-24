@@ -185,11 +185,15 @@ server.route({
             // check cache
             let cachedRes;
             await common.getResInRedis(client, payloadParsed.address).then((res) => {
-              cachedRes = res
+              cachedRes = JSON.parse(res)
             });
             if (cachedRes != undefined || cachedRes) {
-              console.log('use cache')
-              return resolve(cachedRes)
+              // if there is a cache result, modify remaining time window
+              let pastTimestamp = cachedRes.requestTimeStamp
+              let remainingTimeWindow = common.getRemainingTime(pastTimestamp, validationWindow)
+              cachedRes.validationWindow = remainingTimeWindow
+              console.log('use cache', cachedRes)
+              return resolve(JSON.stringify(cachedRes))
             }
             console.log('no cache')
 

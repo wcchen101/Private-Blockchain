@@ -81,6 +81,13 @@ let setErrorMessage = function(status, error) {
   return response
 };
 
+let getRemainingTime = function(pastTimestamp, validationWindow) {
+  let currentTimestap = getCurrentTime()
+  console.log(currentTimestap, pastTimestamp, validationWindow)
+  let remainingTimeWindow = Number(pastTimestamp) + Number(validationWindow) * 1000 - Number(currentTimestap)
+  return remainingTimeWindow
+}
+
 exports.getCurrentTime = getCurrentTime;
 exports.generateMessage = generateMessage;
 exports.setReqValResponse = setReqValResponse;
@@ -89,3 +96,4 @@ exports.getResInRedis = getResInRedis;
 exports.checkIsSignatureValidate = checkIsSignatureValidate;
 exports.setValidationResponse = setValidationResponse;
 exports.setErrorMessage = setErrorMessage;
+exports.getRemainingTime = getRemainingTime;
