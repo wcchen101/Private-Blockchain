@@ -1,5 +1,6 @@
-var bitcoin = require('bitcoinjs-lib') // v3.x.x
-var bitcoinMessage = require('bitcoinjs-message')
+let bitcoin = require('bitcoinjs-lib') // v3.x.x
+let bitcoinMessage = require('bitcoinjs-message')
+let fs = require('fs');
 
 let getCurrentTime = function () {
   let date = new Date()
@@ -25,7 +26,7 @@ let setValidationResponse = function (address, requestTimeStamp, message, isVali
   let curTimestamp = getCurrentTime()
   let remainingTimeWindow = curTimestamp - requestTimeStamp
   let response = {
-    "registerStar": true,
+    "registerStar": isValid,
     "status": {
       "address": address,
       "requestTimeStamp": requestTimeStamp,
@@ -83,9 +84,15 @@ let setErrorMessage = function(status, error) {
 
 let getRemainingTime = function(pastTimestamp, validationWindow) {
   let currentTimestap = getCurrentTime()
-  console.log(currentTimestap, pastTimestamp, validationWindow)
   let remainingTimeWindow = Number(pastTimestamp) + Number(validationWindow) * 1000 - Number(currentTimestap)
   return remainingTimeWindow
+}
+
+let encodedWithHex = function(value) {
+  const buf = Buffer.from(value, 'ascii');
+  let encodedValue = buf.toString('hex')
+  console.log(encodedValue)
+  return encodedValue
 }
 
 exports.getCurrentTime = getCurrentTime;
@@ -97,3 +104,4 @@ exports.checkIsSignatureValidate = checkIsSignatureValidate;
 exports.setValidationResponse = setValidationResponse;
 exports.setErrorMessage = setErrorMessage;
 exports.getRemainingTime = getRemainingTime;
+exports.encodedWithHex = encodedWithHex;

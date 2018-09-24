@@ -150,6 +150,11 @@ server.route({
             body.address = payloadParsed.address
             body.star = payloadParsed.star
 
+            // encoded star story with hex
+            if (body.star != undefined && payloadParsed.star != undefined) {
+              body.star.story = common.encodedWithHex(payloadParsed.star.story)
+            }
+
             let newBlock = new Block(body);
             let blockHeight = await blockchain.addBlock(newBlock)
             let addedBlock = await blockchain.getBlock(blockHeight)
