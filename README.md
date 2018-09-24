@@ -300,3 +300,4 @@ blockchain.validateChain();
 - Redis usage: https://hackernoon.com/using-redis-with-node-js-8d87a48c5dd7
 - bitcoinjs-message: https://github.com/bitcoinjs/bitcoinjs-message
 - REST API Documentation Best Practice: https://bocoup.com/blog/documenting-your-api
+- Encoded and decoded in Node.js: https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings
