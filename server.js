@@ -2,9 +2,9 @@
 
 const Hapi = require('hapi');
 
-const Blockchain = require('./simpleChain');
-const Block = require('./simpleBlock');
-const common = require('./utils/common');
+const Blockchain = require('./libs/classes/simpleChain');
+const Block = require('./libs/classes/simpleBlock');
+const common = require('./libs/functions/common');
 
 // Create a server with a host and port
 const server = Hapi.server({
