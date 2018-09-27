@@ -159,12 +159,41 @@ server.route({
 
             // encoded star story with hex
             if (body.star != undefined && requestPayload.star != undefined) {
-              body.star.story = common.encodedToHex(requestPayload.star.story)
+              //TODO: check story not more than 250 words or 500 bytes
+              let encodingStory = requestPayload.star.story
+              if (encodingStory.length > 250) {
+                encodingStory = encodingStory.substring(0, 250)
+                console.log(encodingStory)
+              }
+              body.star.story = common.encodedToHex(encodingStory)
+            }
+
+            // check cache
+            let cachedRes;
+            await common.getResInRedis(client, requestPayload.address).then((res) => {
+              cachedRes = JSON.parse(res)
+            });
+
+            // TODO: check if passed the signature validation
+            if (cachedRes && cachedRes.isPassedValidation && !cachedRes.isPassedValidation) {
+              let response = common.setErrorMessage('500', 'do not pass the validation!')
+              console.log('error: ', response)
+              return resolve(response)
             }
 
             let newBlock = new Block(body);
-            let blockHeight = await blockchain.addBlock(newBlock)
-            let addedBlock = await blockchain.getBlock(blockHeight)
+
+            let blockHeight;
+            await blockchain.addBlock(newBlock).then((height) => {
+              blockHeight = height;
+            });
+            console.log('blockHeight',blockHeight)
+
+            let addedBlock;
+            await blockchain.getBlock(blockHeight).then((block) => {
+              addedBlock = block
+            });
+            console.log('addedBlock', addedBlock)
 
             res = addedBlock
 
@@ -261,6 +290,11 @@ server.route({
 
             let isValid = await common.checkIsSignatureValidate(message, address, signature)
             let response = common.setValidationResponse(address, requestTimeStamp, message, isValid)
+
+            //TODO: check if valid then add record into redis
+            if (isValid && isValid == true) {
+              cachedRes.isPassedValidation = true
+            }
 
             return resolve(response)
 
