@@ -54,7 +54,12 @@ server.route({
             return resolve(response)
           }
 
-          blockchain.getBlock(targetBlockId).then((res) => resolve(res));
+          blockchain.getBlock(targetBlockId).then((res) => {
+            console.log('res', res)
+            let blockWithStoryDecoded = common.setStarDecodedResponse(res)
+            console.log('blockWithStoryDecoded', blockWithStoryDecoded)
+            resolve(blockWithStoryDecoded)
+          });
 
         } catch(err) {
           console.log('catch error', err)
@@ -79,7 +84,8 @@ server.route({
           for (let i = 0; i < blockHeight + 1; i++) {
             let block = await blockchain.getBlock(i)
             if (block != undefined && block.body != undefined && block.body.address != undefined && block.body.address === targetAddress) {
-              foundBlock.push(block)
+              let blockWithStoryDecoded = common.setStarDecodedResponse(block)
+              foundBlock.push(blockWithStoryDecoded)
             }
           }
 
@@ -113,7 +119,8 @@ server.route({
           for (let i = 0; i < blockHeight + 1; i++) {
             let block = await blockchain.getBlock(i)
             if (block != undefined && block.hash != undefined && block.hash === targetBlockHash) {
-              foundBlock = block
+              let blockWithStoryDecoded = common.setStarDecodedResponse(block)
+              foundBlock = blockWithStoryDecoded
               break
             }
           }
@@ -141,18 +148,18 @@ server.route({
     handler: (request, h) => {
       return new Promise(async (resolve, reject) => {
         try {
-          let payloadParsed = JSON.parse(request.payload);
-          if (payloadParsed != undefined && payloadParsed !== '') {
+          let requestPayload = request.payload;
+          if (requestPayload != undefined && requestPayload !== '') {
             let res = {}
             let body = {}
 
             //set block body
-            body.address = payloadParsed.address
-            body.star = payloadParsed.star
+            body.address = requestPayload.address
+            body.star = requestPayload.star
 
             // encoded star story with hex
-            if (body.star != undefined && payloadParsed.star != undefined) {
-              body.star.story = common.encodedWithHex(payloadParsed.star.story)
+            if (body.star != undefined && requestPayload.star != undefined) {
+              body.star.story = common.encodedToHex(requestPayload.star.story)
             }
 
             let newBlock = new Block(body);
@@ -184,12 +191,12 @@ server.route({
     handler: (request, h) => {
       return new Promise(async (resolve, reject) => {
         try {
-          let payloadParsed = JSON.parse(request.payload);
-          if (payloadParsed.address != undefined && payloadParsed.address !== '') {
+          let requestPayload = request.payload;
+          if (requestPayload.address != undefined && requestPayload.address !== '') {
 
             // check cache
             let cachedRes;
-            await common.getResInRedis(client, payloadParsed.address).then((res) => {
+            await common.getResInRedis(client, requestPayload.address).then((res) => {
               cachedRes = JSON.parse(res)
             });
             if (cachedRes != undefined || cachedRes) {
@@ -202,7 +209,7 @@ server.route({
             }
             console.log('no cache')
 
-            let address = payloadParsed.address
+            let address = requestPayload.address
             let currentTimestamp = common.getCurrentTime()
             let message = common.generateMessage(address, currentTimestamp, 'startRegistry')
 
@@ -233,12 +240,12 @@ server.route({
     handler: (request, h) => {
       return new Promise(async (resolve, reject) => {
         try {
-          let payloadParsed = JSON.parse(request.payload);
+          let requestPayload = request.payload;
 
-          if (payloadParsed.address != undefined && payloadParsed.address !== '') {
+          if (requestPayload.address != undefined && requestPayload.address !== '') {
 
             let cachedRes;
-            await common.getResInRedis(client, payloadParsed.address).then((res) => {
+            await common.getResInRedis(client, requestPayload.address).then((res) => {
               cachedRes = JSON.parse(res)
             });
 
@@ -246,8 +253,8 @@ server.route({
               return resolve('error')
             };
 
-            let address = payloadParsed.address
-            let signature = payloadParsed.signature
+            let address = requestPayload.address
+            let signature = requestPayload.signature
             let message = cachedRes.message
             let requestTimeStamp = cachedRes.requestTimeStamp
 
