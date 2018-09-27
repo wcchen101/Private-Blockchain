@@ -38,6 +38,18 @@ let setValidationResponse = function (address, requestTimeStamp, message, isVali
   return response
 }
 
+let setStarDecodedResponse = function(block) {
+  console.log('block', block)
+  let decodedStory;
+  if (block.body != undefined && block.body.star) {
+    decodedStory = decdoedFromHex(block.body.star.story)
+    block.body.star.storyDecoded = decodedStory
+  }
+
+  console.log('response block with decoded story', decodedStory)
+  return block
+}
+
 let setResInRedis = function (client, key, res, validationWindow) {
   let resStr = JSON.stringify(res)
   client.set(key, resStr);
@@ -88,11 +100,19 @@ let getRemainingTime = function(pastTimestamp, validationWindow) {
   return remainingTimeWindow
 }
 
-let encodedWithHex = function(value) {
+let encodedToHex = function(value) {
   const buf = Buffer.from(value, 'ascii');
   let encodedValue = buf.toString('hex')
   console.log(encodedValue)
   return encodedValue
+}
+
+let decdoedFromHex = function(value) {
+  console.log('value', value)
+  const buf = new Buffer(value, 'hex')
+  let decodedValue = buf.toString()
+  console.log('from hex to ascii', decodedValue)
+  return decodedValue
 }
 
 exports.getCurrentTime = getCurrentTime;
@@ -104,4 +124,6 @@ exports.checkIsSignatureValidate = checkIsSignatureValidate;
 exports.setValidationResponse = setValidationResponse;
 exports.setErrorMessage = setErrorMessage;
 exports.getRemainingTime = getRemainingTime;
-exports.encodedWithHex = encodedWithHex;
+exports.encodedToHex = encodedToHex;
+exports.decdoedFromHex = decdoedFromHex;
+exports.setStarDecodedResponse = setStarDecodedResponse;
