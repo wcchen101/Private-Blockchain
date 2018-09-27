@@ -9,7 +9,7 @@ Blockchain has the potential to change the way that the world approaches data. D
 - level
 - bitcoinjs-lib
 - bitcoinjs-message
-- redis
+- redis (need to install and run the redis server before starting app)
 
 ## API design
 - Get certain block data using blockHeight
@@ -253,6 +253,10 @@ ex.
 - Install the node modules dependencies
 ```
 npm install
+```
+- Run the redis server before starting app server
+```
+  src/redis-server
 ```
 - Start app server
 ```
