@@ -60,6 +60,17 @@ const setResInRedis = function (client, key, res, validationWindow) {
   return 'success'
 }
 
+const updateResInRedis = function (client, key, res, remainingTimeWindow) {
+  let resStr = JSON.stringify(res)
+  client.set(key, resStr);
+
+  // modify time to validationWindow for prod purpose
+  client.expire(key, remainingTimeWindow);
+  // client.expire(key, validationWindow);
+  console.log('set into redis successfully for ' + remainingTimeWindow + ' seconds')
+  return 'success'
+}
+
 const getResInRedis = function (client, key) {
   return new Promise((resolve, reject) => {
     client.get(key, function(err, res) {
@@ -74,13 +85,11 @@ const getResInRedis = function (client, key) {
 };
 
 const checkIsSignatureValidate = function(message, address, signature) {
-  return new Promise((resolve, reject) => {
-    let isValid = bitcoinMessage.verify(message, address, signature)
-
+  return new Promise(async (resolve, reject) => {
+    let isValid = await bitcoinMessage.verify(message, address, signature)
     if (isValid) {
       return resolve(true)
     }
-
     return resolve(false)
   });
 };
@@ -127,3 +136,4 @@ exports.getRemainingTime = getRemainingTime;
 exports.encodedToHex = encodedToHex;
 exports.decdoedFromHex = decdoedFromHex;
 exports.setStarDecodedResponse = setStarDecodedResponse;
+exports.updateResInRedis = updateResInRedis;
