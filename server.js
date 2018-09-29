@@ -174,7 +174,7 @@ server.route({
               cachedRes = JSON.parse(res)
             });
 
-            // TODO: check if passed the signature validation
+            // check if passed the signature validation
             if (cachedRes && cachedRes.isPassedValidation && !cachedRes.isPassedValidation) {
               let response = common.setErrorMessage('500', 'do not pass the validation!')
               console.log('error: ', response)
@@ -234,7 +234,7 @@ server.route({
               let remainingTimeWindow = common.getRemainingTime(pastTimestamp, validationWindow)
               cachedRes.validationWindow = remainingTimeWindow
               console.log('use cache', cachedRes)
-              return resolve(JSON.stringify(cachedRes))
+              return resolve(cachedRes)
             }
             console.log('no cache')
 
@@ -247,7 +247,7 @@ server.route({
             //set req info into redis
             common.setResInRedis(client, address, res, validationWindow)
 
-            return resolve(JSON.stringify(res))
+            return resolve(res)
 
           } else {
             let response = common.setErrorMessage('500', 'internal server error, post body might have error')
@@ -279,7 +279,9 @@ server.route({
             });
 
             if (cachedRes == undefined || !cachedRes) {
-              return resolve('error')
+              let response = common.setErrorMessage('500', 'validation error')
+              console.log('error: ', response)
+              return resolve(response)
             };
 
             let address = requestPayload.address
@@ -291,9 +293,11 @@ server.route({
             let isValid = await common.checkIsSignatureValidate(message, address, signature)
             let response = common.setValidationResponse(address, requestTimeStamp, message, isValid)
 
-            //TODO: check if valid then add record into redis
+            // check if valid then add record into redis
             if (isValid && isValid == true) {
               cachedRes.isPassedValidation = true
+            } else {
+              cachedRes.isPassedValidation = false
             }
 
             return resolve(response)
