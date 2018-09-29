@@ -12,9 +12,9 @@ let addLevelDBData = function(key, value) {
     db.put(key, value, function(err) {
       if (err) {
         console.log('Block ' + key + ' submission failed', err);
-        reject(err)
+        return reject(err)
       }
-      resolve('Block inserted into db')
+      return resolve('Block inserted into db')
     })
   })
 };
