@@ -24,11 +24,11 @@ let getLevelDBData = function(key) {
   return new Promise(function(resolve, reject) {
     db.get(key, function(err, value) {
     if (err) {
-      reject(err)
       console.log('Not found!', err);
+      return reject(err)
     }
-    resolve(JSON.parse(value))
     console.log('Value = ' + value);
+    return resolve(JSON.parse(value))
     })
   })
 }
