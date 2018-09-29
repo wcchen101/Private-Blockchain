@@ -25,7 +25,7 @@ client.on('error', function (err) {
     console.log('Some error happened in redis: ' + err);
 });
 
-let blockchain = new Blockchain();
+const blockchain = new Blockchain();
 
 // Add the route
 server.route({
@@ -47,6 +47,7 @@ server.route({
 
         //ok to get block
         try {
+
           // check if id greater than block height
           if (targetBlockId > blockHeight) {
             let response = common.setErrorMessage('404', 'cannot find the block using this id')
@@ -159,7 +160,7 @@ server.route({
 
             // encoded star story with hex
             if (body.star != undefined && requestPayload.star != undefined) {
-              //TODO: check story not more than 250 words or 500 bytes
+              // check story not more than 250 words or 500 bytes
               let encodingStory = requestPayload.star.story
               if (encodingStory.length > 250) {
                 encodingStory = encodingStory.substring(0, 250)
@@ -168,21 +169,22 @@ server.route({
               body.star.story = common.encodedToHex(encodingStory)
             }
 
-            // check cache
+            // check cache, to get the record which containing validation result: isValid
             let cachedRes;
             await common.getResInRedis(client, requestPayload.address).then((res) => {
               cachedRes = JSON.parse(res)
             });
 
-            // check if passed the signature validation
+            // check if passed the signature validation, if isPassedValidation == false
+            // then it is not allowed to add and return
             if (cachedRes && cachedRes.isPassedValidation && !cachedRes.isPassedValidation) {
               let response = common.setErrorMessage('500', 'do not pass the validation!')
               console.log('error: ', response)
               return resolve(response)
             }
 
+            // because it knows the validation is passed, then it can start to add block
             let newBlock = new Block(body);
-
             let blockHeight;
             await blockchain.addBlock(newBlock).then((height) => {
               blockHeight = height;
@@ -223,7 +225,8 @@ server.route({
           let requestPayload = request.payload;
           if (requestPayload.address != undefined && requestPayload.address !== '') {
 
-            // check cache
+            // check cache, because it can get the record if it send the requestvalidation before
+            // and it can get it and reduce the validation window
             let cachedRes;
             await common.getResInRedis(client, requestPayload.address).then((res) => {
               cachedRes = JSON.parse(res)
@@ -293,7 +296,9 @@ server.route({
             let isValid = await common.checkIsSignatureValidate(message, address, signature)
             let response = common.setValidationResponse(address, requestTimeStamp, message, isValid)
 
-            // check if valid then add record into redis
+            // check if valid then add record into redis. doing it is because
+            // when there is a post new block request, it can check if the validation
+            // isValid == true or false. ture then allow to add, otherwise deny
             if (isValid && isValid == true) {
               cachedRes.isPassedValidation = true
             } else {
