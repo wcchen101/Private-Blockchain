@@ -174,11 +174,24 @@ server.route({
             await common.getResInRedis(client, requestPayload.address).then((res) => {
               cachedRes = JSON.parse(res)
             });
-
+            console.log('before cachedRes', cachedRes)
+            // if there is no cached about this block or address, it must be an error!
+            if (cachedRes == undefined || cachedRes.isPassedValidation === undefined || cachedRes.isBlockAdded === undefined) {
+              let response = common.setErrorMessage('500', 'internal server error!')
+              console.log('error: ', response)
+              return resolve(response)
+            }
             // check if passed the signature validation, if isPassedValidation == false
             // then it is not allowed to add and return
-            if (cachedRes && cachedRes.isPassedValidation && !cachedRes.isPassedValidation) {
+            if (cachedRes && !cachedRes.isPassedValidation) {
               let response = common.setErrorMessage('500', 'do not pass the validation!')
+              console.log('error: ', response)
+              return resolve(response)
+            }
+
+            // check if the block has been added before
+            if (cachedRes && cachedRes.isBlockAdded) {
+              let response = common.setErrorMessage('500', 'the block has been already added!')
               console.log('error: ', response)
               return resolve(response)
             }
@@ -188,9 +201,17 @@ server.route({
             let blockHeight;
             await blockchain.addBlock(newBlock).then((height) => {
               blockHeight = height;
+
+              // block added is set to true
+              let requestTimeStamp = cachedRes.requestTimeStamp
+              let remainingTimeWindow = common.getRemainingTime(requestTimeStamp, validationWindow)
+              let address = requestPayload.address
+              cachedRes.isBlockAdded = true;
+
+              common.updateResInRedis(client, address, cachedRes, remainingTimeWindow)
             });
             console.log('blockHeight',blockHeight)
-
+            console.log('after', cachedRes)
             let addedBlock;
             await blockchain.getBlock(blockHeight).then((block) => {
               addedBlock = block
@@ -291,20 +312,25 @@ server.route({
             let signature = requestPayload.signature
             let message = cachedRes.message
             let requestTimeStamp = cachedRes.requestTimeStamp
+            let isValid = false;
+            let remainingTimeWindow = common.getRemainingTime(requestTimeStamp, validationWindow)
 
+            await common.checkIsSignatureValidate(message, address, signature).then((validRes) => {
+              // check if valid then add record into redis. doing it is because
+              // when there is a post new block request, it can check if the validation
+              // isValid == true or false. ture then allow to add, otherwise deny
+              // isBlockAdded to record if the address add the block or not
+              isValid = validRes;
+              if (isValid && isValid == true) {
+                cachedRes.isPassedValidation = true;
+              } else {
+                cachedRes.isPassedValidation = false;
+              }
+              cachedRes.isBlockAdded = false;
+              common.updateResInRedis(client, address, cachedRes, remainingTimeWindow)
+            });
 
-            let isValid = await common.checkIsSignatureValidate(message, address, signature)
-            let response = common.setValidationResponse(address, requestTimeStamp, message, isValid)
-
-            // check if valid then add record into redis. doing it is because
-            // when there is a post new block request, it can check if the validation
-            // isValid == true or false. ture then allow to add, otherwise deny
-            if (isValid && isValid == true) {
-              cachedRes.isPassedValidation = true
-            } else {
-              cachedRes.isPassedValidation = false
-            }
-
+            let response = await common.setValidationResponse(address, requestTimeStamp, message, isValid)
             return resolve(response)
 
           } else {
