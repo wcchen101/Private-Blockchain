@@ -2,17 +2,17 @@ let bitcoin = require('bitcoinjs-lib') // v3.x.x
 let bitcoinMessage = require('bitcoinjs-message')
 let fs = require('fs');
 
-let getCurrentTime = function () {
+const getCurrentTime = function () {
   let date = new Date()
   let curTimestamp = date.getTime()
   return curTimestamp
 };
 
-let generateMessage = function (address, timestamp, message) {
+const generateMessage = function (address, timestamp, message) {
   return address + ':' + timestamp + ':' + message
 };
 
-let setReqValResponse = function (address, requestTimeStamp, message, validationWindow) {
+const setReqValResponse = function (address, requestTimeStamp, message, validationWindow) {
   let response = {
     "address": address,
     "requestTimeStamp": requestTimeStamp,
@@ -22,7 +22,7 @@ let setReqValResponse = function (address, requestTimeStamp, message, validation
   return response
 }
 
-let setValidationResponse = function (address, requestTimeStamp, message, isValid) {
+const setValidationResponse = function (address, requestTimeStamp, message, isValid) {
   let curTimestamp = getCurrentTime()
   let remainingTimeWindow = curTimestamp - requestTimeStamp
   let response = {
@@ -38,7 +38,7 @@ let setValidationResponse = function (address, requestTimeStamp, message, isVali
   return response
 }
 
-let setStarDecodedResponse = function(block) {
+const setStarDecodedResponse = function(block) {
   console.log('block', block)
   let decodedStory;
   if (block.body != undefined && block.body.star) {
@@ -50,7 +50,7 @@ let setStarDecodedResponse = function(block) {
   return block
 }
 
-let setResInRedis = function (client, key, res, validationWindow) {
+const setResInRedis = function (client, key, res, validationWindow) {
   let resStr = JSON.stringify(res)
   client.set(key, resStr);
 
@@ -60,7 +60,7 @@ let setResInRedis = function (client, key, res, validationWindow) {
   return 'success'
 }
 
-let getResInRedis = function (client, key) {
+const getResInRedis = function (client, key) {
   return new Promise((resolve, reject) => {
     client.get(key, function(err, res) {
       if (err) {
@@ -73,7 +73,7 @@ let getResInRedis = function (client, key) {
   })
 };
 
-let checkIsSignatureValidate = function(message, address, signature) {
+const checkIsSignatureValidate = function(message, address, signature) {
   return new Promise((resolve, reject) => {
     let isValid = bitcoinMessage.verify(message, address, signature)
 
@@ -85,7 +85,7 @@ let checkIsSignatureValidate = function(message, address, signature) {
   });
 };
 
-let setErrorMessage = function(status, error) {
+const setErrorMessage = function(status, error) {
   let response = {
     "statusCode": status,
     "error": error,
@@ -94,20 +94,20 @@ let setErrorMessage = function(status, error) {
   return response
 };
 
-let getRemainingTime = function(pastTimestamp, validationWindow) {
+const getRemainingTime = function(pastTimestamp, validationWindow) {
   let currentTimestap = getCurrentTime()
   let remainingTimeWindow = Number(pastTimestamp) + Number(validationWindow) * 1000 - Number(currentTimestap)
   return remainingTimeWindow
 }
 
-let encodedToHex = function(value) {
+const encodedToHex = function(value) {
   const buf = Buffer.from(value, 'ascii');
   let encodedValue = buf.toString('hex')
   console.log(encodedValue)
   return encodedValue
 }
 
-let decdoedFromHex = function(value) {
+const decdoedFromHex = function(value) {
   console.log('value', value)
   const buf = new Buffer(value, 'hex')
   let decodedValue = buf.toString()
