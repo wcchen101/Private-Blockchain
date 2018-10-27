@@ -6,12 +6,24 @@ contract StarNotary is ERC721 {
 
     struct Star {
         string name;
-        string starCoordinators;
         string story;
+        string dec;
+        string mag;
+        string cent;
+        string starCoordinators;
+
     }
 
-    mapping(uint256 => Star) public tokenIdToStarInfo;
-    mapping(uint256 => uint256) public starsForSale;
+    struct Response {
+        string name;
+        string story;
+        string dec;
+        string mag;
+        string cent;
+    }
+
+    mapping(uint256 => Star) public tokenIdToStarInfoMap;
+    mapping(uint256 => uint256) public starsForSaleMap;
     uint256[] public tokenIdIndices;
 
     function createStar(string _name, string _dec, string _mag, string _cent, string _story, uint256 _tokenId) public {
@@ -21,7 +33,7 @@ contract StarNotary is ERC721 {
         // can put int to a function
         for (uint i = 0; i < tokenIdIndices.length; i++) {
           uint tokenId = tokenIdIndices[i];
-          Star storage star = tokenIdToStarInfo[tokenId];
+          Star storage star = tokenIdToStarInfoMap[tokenId];
           bool result = isStringsEqual(starCoordinators, star.starCoordinators);
           require(result != true);
         }
@@ -29,9 +41,9 @@ contract StarNotary is ERC721 {
         //add tokenId into tokenIdIndices array
         tokenIdIndices.push(_tokenId);
 
-        Star memory newStar = Star(_name, starCoordinators, _story);
+        Star memory newStar = Star(_name, _story, _dec, _mag, _cent, starCoordinators);
 
-        tokenIdToStarInfo[_tokenId] = newStar;
+        tokenIdToStarInfoMap[_tokenId] = newStar;
 
         _mint(msg.sender, _tokenId);
     }
@@ -39,13 +51,13 @@ contract StarNotary is ERC721 {
     function putStarUpForSale(uint256 _tokenId, uint256 _price) public {
         require(this.ownerOf(_tokenId) == msg.sender);
 
-        starsForSale[_tokenId] = _price;
+        starsForSaleMap[_tokenId] = _price;
     }
 
     function buyStar(uint256 _tokenId) public payable {
-        require(starsForSale[_tokenId] > 0);
+        require(starsForSaleMap[_tokenId] > 0);
 
-        uint256 starCost = starsForSale[_tokenId];
+        uint256 starCost = starsForSaleMap[_tokenId];
         address starOwner = this.ownerOf(_tokenId);
         require(msg.value >= starCost);
 
@@ -59,6 +71,19 @@ contract StarNotary is ERC721 {
         }
     }
 
+    function tokenIdToStarInfo(uint256 _tokenId) public view returns (string, string, string, string, string) {
+      string name = tokenIdToStarInfoMap[_tokenId].name;
+      string story = tokenIdToStarInfoMap[_tokenId].story;
+      string dec = tokenIdToStarInfoMap[_tokenId].dec;
+      string mag = tokenIdToStarInfoMap[_tokenId].mag;
+      string cent = tokenIdToStarInfoMap[_tokenId].cent;
+
+      return (name, story, dec, mag, cent);
+    }
+
+    function starsForSale(uint256 _startId) public view returns (uint256) {
+      return starsForSaleMap[_startId];
+    }
     function starCoordinatorsConcat(string _dec, string _mag, string _cent) public returns (string) {
       bytes memory _decBytes = bytes(_dec);
       bytes memory _magBytes = bytes(_mag);
@@ -75,7 +100,7 @@ contract StarNotary is ERC721 {
     function checkStarExist(string _dec, string _mag, string _cent) internal returns (bool) {
       string memory starCoordinators = starCoordinatorsConcat(_dec, _mag, _cent);
       for (uint i = 0; i < tokenIdIndices.length; i++) {
-        if (isStringsEqual(starCoordinators, tokenIdToStarInfo[tokenIdIndices[i]].starCoordinators)) {
+        if (isStringsEqual(starCoordinators, tokenIdToStarInfoMap[tokenIdIndices[i]].starCoordinators)) {
           return true;
         }
       }
@@ -85,7 +110,7 @@ contract StarNotary is ERC721 {
     function checkIfStarExist(string _dec, string _mag, string _cent) public view returns (bool) {
       string memory starCoordinators = starCoordinatorsConcat(_dec, _mag, _cent);
       for (uint i = 0; i < tokenIdIndices.length; i++) {
-        if (isStringsEqual(starCoordinators, tokenIdToStarInfo[tokenIdIndices[i]].starCoordinators)) {
+        if (isStringsEqual(starCoordinators, tokenIdToStarInfoMap[tokenIdIndices[i]].starCoordinators)) {
           return true;
         }
       }
