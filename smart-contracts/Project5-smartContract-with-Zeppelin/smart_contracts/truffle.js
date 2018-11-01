@@ -12,6 +12,10 @@
  *   },
  */
 
+ var HDWalletProvider = require('truffle-hdwallet-provider');
+
+ var mnemonic = 'udacity starNotary smart contract';
+
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   // to customize your Truffle configuration!
@@ -20,6 +24,14 @@ module.exports = {
       host: "localhost",
       port: 8545,
       network_id: "*"
-    }
+    },
+    rinkeby: {
+      provider: function() {
+        return new HDWalletProvider(mnemonic, 'https://rinkeby.infura.io/v3/f29dc15d91a74bd19c26d65773d919ce')
+      },
+      network_id: 4,
+      gas: 4500000,
+      gasPrice: 10000000000,
+    }   
   }
 };
