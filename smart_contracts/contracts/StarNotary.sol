@@ -11,7 +11,6 @@ contract StarNotary is ERC721 {
         string mag;
         string cent;
         string starCoordinators;
-
     }
 
     struct Response {
@@ -26,8 +25,11 @@ contract StarNotary is ERC721 {
     mapping(uint256 => uint256) public starsForSaleMap;
     uint256[] public tokenIdIndices;
 
+    event starCreated(address owner);
+
     function createStar(string _name, string _dec, string _mag, string _cent, string _story, uint256 _tokenId) public {
         //to check if star coordinators duplicate beforehand
+
         string memory starCoordinators = starCoordinatorsConcat(_dec, _mag, _cent);
 
         // can put int to a function
@@ -46,6 +48,8 @@ contract StarNotary is ERC721 {
         tokenIdToStarInfoMap[_tokenId] = newStar;
 
         _mint(msg.sender, _tokenId);
+        emit starCreated(msg.sender);
+
     }
 
     function putStarUpForSale(uint256 _tokenId, uint256 _price) public {
@@ -84,6 +88,7 @@ contract StarNotary is ERC721 {
     function starsForSale(uint256 _startId) public view returns (uint256) {
       return starsForSaleMap[_startId];
     }
+
     function starCoordinatorsConcat(string _dec, string _mag, string _cent) public returns (string) {
       bytes memory _decBytes = bytes(_dec);
       bytes memory _magBytes = bytes(_mag);
