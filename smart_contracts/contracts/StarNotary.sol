@@ -26,6 +26,7 @@ contract StarNotary is ERC721 {
     uint256[] public tokenIdIndices;
 
     event starCreated(address owner);
+    event starSales(address owner);
 
     function createStar(string _name, string _dec, string _mag, string _cent, string _story, uint256 _tokenId) public {
         //to check if star coordinators duplicate beforehand
@@ -56,6 +57,7 @@ contract StarNotary is ERC721 {
         require(this.ownerOf(_tokenId) == msg.sender);
 
         starsForSaleMap[_tokenId] = _price;
+        emit starSales(msg.sender);
     }
 
     function buyStar(uint256 _tokenId) public payable {
