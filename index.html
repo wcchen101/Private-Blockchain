@@ -43,7 +43,13 @@
                 <input id="star-cent-input" />
             </div>
 
-            <button id="claim-button" onclick="claimButtonClicked()">Claim Star</button>
+            <div class="row">
+                <label class="bold">Star Token Id:</label>
+                <label id="star-cent"></label>
+                <input id="star-tokenid-input" />
+            </div>
+
+            <button id="claim-button" onclick="createButtonClicked()">Create Star</button>
         </div>
 
         <div class="row">
@@ -55,6 +61,32 @@
         <div class="row">
             <label class="bold">Star Info:</label>
             <label id="star-info-claimed"></label>
+        </div>
+
+        <div class="row">
+            <label class="bold">Star Sale Id:</label>
+            <input id="star-saleid-input" />
+        </div>
+
+        <div class="row">
+            <label class="bold">Star Sale Price: </label>
+            <input id="star-price-input" />
+        </div>
+        <button id="search-button" onclick="salesButtonClicked()">Sale Star</button>
+
+
+        <div class="row">
+            <label class="bold">Star Token Id:</label>
+            <input id="star-sale-check-input" />
+        </div>
+
+        <button id="search-button" onclick="checkSalesButtonClicked()">Check Price</button>
+
+        <div class="row">
+          <label class="bold">Star Sale Id:</label>
+          <label id="star-sale-id"></label>
+          <label class="bold">Star Sale Price:</label>
+          <label id="star-sale-price"></label>
         </div>
 
         <script>
@@ -109,6 +141,40 @@
               		"outputs": [],
               		"payable": true,
               		"stateMutability": "payable",
+              		"type": "function"
+              	},
+              	{
+              		"constant": false,
+              		"inputs": [
+              			{
+              				"name": "_name",
+              				"type": "string"
+              			},
+              			{
+              				"name": "_dec",
+              				"type": "string"
+              			},
+              			{
+              				"name": "_mag",
+              				"type": "string"
+              			},
+              			{
+              				"name": "_cent",
+              				"type": "string"
+              			},
+              			{
+              				"name": "_story",
+              				"type": "string"
+              			},
+              			{
+              				"name": "_tokenId",
+              				"type": "uint256"
+              			}
+              		],
+              		"name": "claimStar",
+              		"outputs": [],
+              		"payable": false,
+              		"stateMutability": "nonpayable",
               		"type": "function"
               	},
               	{
@@ -301,7 +367,31 @@
               				"type": "address"
               			}
               		],
+              		"name": "starClaimed",
+              		"type": "event"
+              	},
+              	{
+              		"anonymous": false,
+              		"inputs": [
+              			{
+              				"indexed": false,
+              				"name": "owner",
+              				"type": "address"
+              			}
+              		],
               		"name": "starCreated",
+              		"type": "event"
+              	},
+              	{
+              		"anonymous": false,
+              		"inputs": [
+              			{
+              				"indexed": false,
+              				"name": "owner",
+              				"type": "address"
+              			}
+              		],
+              		"name": "starSales",
               		"type": "event"
               	},
               	{
@@ -602,23 +692,24 @@
               	}
               ]);
             // Grab the contract at specified deployed address with the interface defined by the ABI
-            var starNotary = StarNotary.at('0x50facabd3ac19cdcbdf4311afb60d9904bc5b7aa');
+            var starNotary = StarNotary.at('0xd9e57bec9139d235e8db59489385ab5f6f4e5059');
 
             // Enable claim button being clicked
-            function claimButtonClicked() {
+            function createButtonClicked() {
                 web3.eth.getAccounts(function(error, accounts) {
                     if (error) {
                         console.log(error)
                         return
                     }
                     var account = accounts[0]
-                            var tokenId = 123
+                    var tokenId = document.getElementById('star-tokenid-input').value
 
-                            var starName = document.getElementById('star-name-input').value
-                            var starStory = document.getElementById('star-story-input').value
-                            var starDec = document.getElementById('star-dec-input').value
-                            var starMag = document.getElementById('star-mag-input').value
-                            var starCent = document.getElementById('star-cent-input').value
+                    var starName = document.getElementById('star-name-input').value
+                    var starStory = document.getElementById('star-story-input').value
+                    var starDec = document.getElementById('star-dec-input').value
+                    var starMag = document.getElementById('star-mag-input').value
+                    var starCent = document.getElementById('star-cent-input').value
+
                     starNotary.createStar(starName, starDec, starMag, starCent, starStory, tokenId, function (error, result) {
                         if (!error) {
                             var starCreatedEvent = starNotary.starCreated({from: account});
@@ -648,34 +739,41 @@
                   }
               });
             }
-            // function claimButtonClicked() {
-            //     web3.eth.getAccounts(function(error, accounts) {
-            //         if (error) {
-            //             console.log(error)
-            //             return
-            //         }
-            //         var account = accounts[0]
-            //         console.log('account', account)
-            //         var tokenId = 123
-            //
-            //         var starName = document.getElementById('star-name-input').value
-            //         var starStory = document.getElementById('star-story-input').value
-            //         var starDec = document.getElementById('star-dec-input').value
-            //         var starMag = document.getElementById('star-mag-input').value
-            //         var starCent = document.getElementById('star-cent-input').value
-            //
-            //         console.log(starName, starStory, starDec, starMag, starCent)
-            //
-            //         starNotary.createStar(starName, starDec, starMag, starCent, starStory, tokenId, function (error, result) {
-            //             if (!error) {
-            //               console.log(result)
-            //             } else {
-            //                 console.log(error);
-            //             }
-            //         });
-            //
-            //     })
-            // }
+
+            function salesButtonClicked() {
+              web3.eth.getAccounts(function(error, accounts) {
+                  if (error) {
+                      console.log(error)
+                      return
+                  }
+                  var starUpForSalesTokenId =  document.getElementById('star-saleid-input').value
+                  var price = document.getElementById('star-price-input').value
+                  var account = accounts[0]
+
+                  starNotary.putStarUpForSale(starUpForSalesTokenId, price, function (error, result) {
+                      if (!error) {
+                          var starSalesEvent = starNotary.starSales({from: account});
+                          starSalesEvent.watch(function(error, result) {
+                              if (!error) {
+                                location.reload()
+                              } else {
+                                  console.log('watching for star claimed event is failing');
+                              }
+                          });
+                      } else {
+                          console.log(error);
+                      }
+                  });
+              })
+            }
+
+            function checkSalesButtonClicked() {
+              var starUpForSalesTokenId = document.getElementById('star-sale-check-input').value
+              starNotary.starsForSale(starUpForSalesTokenId, function (err, res) {
+                document.getElementById('star-sale-id').innerText = starUpForSalesTokenId
+                document.getElementById('star-sale-price').innerText = res
+              })
+            }
         </script>
     </body>
 </html>
