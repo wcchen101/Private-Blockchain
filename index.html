@@ -702,7 +702,7 @@
                         return
                     }
                     var account = accounts[0]
-                    var tokenId = document.getElementById('star-tokenid-input').value
+                    var tokenId = parseInt(document.getElementById('star-tokenid-input').value)
 
                     var starName = document.getElementById('star-name-input').value
                     var starStory = document.getElementById('star-story-input').value
@@ -730,7 +730,7 @@
 
             function searchButtonClicked() {
               // Get and display star name
-              var starTokenId = document.getElementById('star-search-input').value
+              var starTokenId = parseInt(document.getElementById('star-search-input').value)
               starNotary.tokenIdToStarInfoMap(starTokenId, function (error, result) {
                   if (!error) {
                       document.getElementById('star-info-claimed').innerText = result
@@ -746,7 +746,7 @@
                       console.log(error)
                       return
                   }
-                  var starUpForSalesTokenId =  document.getElementById('star-saleid-input').value
+                  var starUpForSalesTokenId = parseInt(document.getElementById('star-saleid-input').value)
                   var price = document.getElementById('star-price-input').value
                   var account = accounts[0]
 
@@ -769,7 +769,8 @@
 
             function checkSalesButtonClicked() {
               var starUpForSalesTokenId = document.getElementById('star-sale-check-input').value
-              starNotary.starsForSale(starUpForSalesTokenId, function (err, res) {
+              var tokenIdNumber = Number(starUpForSalesTokenId)
+              starNotary.starsForSale(tokenIdNumber, function (err, res) {
                 document.getElementById('star-sale-id').innerText = starUpForSalesTokenId
                 document.getElementById('star-sale-price').innerText = res
               })
