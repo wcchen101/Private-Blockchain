@@ -1,8 +1,8 @@
 # Project Star Notary Smart Contract
 
 ## Transaction information
-TxHash: 0x90080f791f8d28628a3b1dc36b9164a49e608bb4f653fccaf73917206c52013c
-Contract address: 0xd9e57bec9139d235e8db59489385ab5f6f4e5059
+TxHash: 0xdfe06af1f72358a73df4420247a7bccc195aaef7a0d00da8e37e035d91073c39
+Contract address: 0xd59cbc6a28bc21b0c7b2dbeb63cd2e1227cc9fbb
 
 ## Reference
 - String concatenation: https://ethereum.stackexchange.com/questions/729/how-to-concatenate-strings-in-solidity
