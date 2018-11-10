@@ -88,7 +88,17 @@
           <label class="bold">Star Sale Price:</label>
           <label id="star-sale-price"></label>
         </div>
+        <div class="row">
+            <label class="bold">Star Name:</label>
+            <label id="star-name"></label>
+        </div>
 
+        <div class="row">
+            <label class="bold">Star Owner:</label>
+            <label id="star-owner"></label>
+        </div>
+
+        <button id="claim-button" onclick="claimButtonClicked()">Claim Star</button>
         <script>
 
         window.addEventListener('load', function() {
@@ -141,40 +151,6 @@
               		"outputs": [],
               		"payable": true,
               		"stateMutability": "payable",
-              		"type": "function"
-              	},
-              	{
-              		"constant": false,
-              		"inputs": [
-              			{
-              				"name": "_name",
-              				"type": "string"
-              			},
-              			{
-              				"name": "_dec",
-              				"type": "string"
-              			},
-              			{
-              				"name": "_mag",
-              				"type": "string"
-              			},
-              			{
-              				"name": "_cent",
-              				"type": "string"
-              			},
-              			{
-              				"name": "_story",
-              				"type": "string"
-              			},
-              			{
-              				"name": "_tokenId",
-              				"type": "uint256"
-              			}
-              		],
-              		"name": "claimStar",
-              		"outputs": [],
-              		"payable": false,
-              		"stateMutability": "nonpayable",
               		"type": "function"
               	},
               	{
@@ -313,33 +289,6 @@
               		"constant": false,
               		"inputs": [
               			{
-              				"name": "_dec",
-              				"type": "string"
-              			},
-              			{
-              				"name": "_mag",
-              				"type": "string"
-              			},
-              			{
-              				"name": "_cent",
-              				"type": "string"
-              			}
-              		],
-              		"name": "starCoordinatorsConcat",
-              		"outputs": [
-              			{
-              				"name": "",
-              				"type": "string"
-              			}
-              		],
-              		"payable": false,
-              		"stateMutability": "nonpayable",
-              		"type": "function"
-              	},
-              	{
-              		"constant": false,
-              		"inputs": [
-              			{
               				"name": "from",
               				"type": "address"
               			},
@@ -357,6 +306,12 @@
               		"payable": false,
               		"stateMutability": "nonpayable",
               		"type": "function"
+              	},
+              	{
+              		"inputs": [],
+              		"payable": false,
+              		"stateMutability": "nonpayable",
+              		"type": "constructor"
               	},
               	{
               		"anonymous": false,
@@ -544,6 +499,47 @@
               		"constant": true,
               		"inputs": [
               			{
+              				"name": "_dec",
+              				"type": "string"
+              			},
+              			{
+              				"name": "_mag",
+              				"type": "string"
+              			},
+              			{
+              				"name": "_cent",
+              				"type": "string"
+              			}
+              		],
+              		"name": "starCoordinatorsConcat",
+              		"outputs": [
+              			{
+              				"name": "",
+              				"type": "string"
+              			}
+              		],
+              		"payable": false,
+              		"stateMutability": "pure",
+              		"type": "function"
+              	},
+              	{
+              		"constant": true,
+              		"inputs": [],
+              		"name": "starName",
+              		"outputs": [
+              			{
+              				"name": "",
+              				"type": "string"
+              			}
+              		],
+              		"payable": false,
+              		"stateMutability": "view",
+              		"type": "function"
+              	},
+              	{
+              		"constant": true,
+              		"inputs": [
+              			{
               				"name": "_startId",
               				"type": "uint256"
               			}
@@ -692,7 +688,7 @@
               	}
               ]);
             // Grab the contract at specified deployed address with the interface defined by the ABI
-            var starNotary = StarNotary.at('0xd9e57bec9139d235e8db59489385ab5f6f4e5059');
+            var starNotary = StarNotary.at('0xd59cbc6a28bc21b0c7b2dbeb63cd2e1227cc9fbb');
 
             // Enable claim button being clicked
             function createButtonClicked() {
@@ -747,7 +743,7 @@
                       return
                   }
                   var starUpForSalesTokenId = parseInt(document.getElementById('star-saleid-input').value)
-                  var price = document.getElementById('star-price-input').value
+                  var price = parseInt(document.getElementById('star-price-input').value)
                   var account = accounts[0]
 
                   starNotary.putStarUpForSale(starUpForSalesTokenId, price, function (error, result) {
@@ -774,6 +770,32 @@
                 document.getElementById('star-sale-id').innerText = starUpForSalesTokenId
                 document.getElementById('star-sale-price').innerText = res
               })
+            }
+
+            // Enable claim button being clicked
+            function claimButtonClicked() {
+                web3.eth.getAccounts(function(error, accounts) {
+                    if (error) {
+                        console.log(error)
+                        return
+                    }
+                    var account = accounts[0]
+                    starNotary.claimStar(function (error, result) {
+                        if (!error) {
+                            var starClaimedEvent = starNotary.starClaimed({from: account});
+                            starClaimedEvent.watch(function(error, result) {
+                                if (!error) {
+                                    location.reload();
+                                } else {
+                                    console.log('watching for star claimed event is failing');
+                                }
+                            });
+                        } else {
+                            console.log(error);
+                        }
+                    });
+
+                })
             }
         </script>
     </body>
